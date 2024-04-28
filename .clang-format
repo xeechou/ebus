@@ -1,0 +1,70 @@
+---
+Language: Cpp
+# BasedOnStyle: Mozilla
+
+# indent
+UseTab: Never
+IndentWidth: 4
+# has to the same as indent width
+AccessModifierOffset: -4
+IndentCaseLabels: false
+IndentPPDirectives: AfterHash
+AlwaysBreakTemplateDeclarations: true
+LambdaBodyIndentation: Signature
+AlwaysBreakAfterReturnType: TopLevelDefinitions
+IndentWrappedFunctionNames: false
+
+
+#name space
+CompactNamespaces: true
+FixNamespaceComments: true
+NamespaceIndentation: None
+InsertTrailingCommas: Wrapped
+
+#line space
+AllowShortIfStatementsOnASingleLine: false
+AllowAllParametersOfDeclarationOnNextLine: true
+AllowShortFunctionsOnASingleLine: true
+AllowShortLoopsOnASingleLine: false
+AllowAllArgumentsOnNextLine: false
+ColumnLimit: 89
+
+PointerAlignment: Left
+AlignArrayOfStructures: Left
+AlignConsecutiveDeclarations: true
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments:
+  Enabled: true
+  AcrossComments: false
+  AcrossEmptyLines: false
+  AlignCompound: true
+  PadOperators: false
+AlignTrailingComments: true
+AlignEscapedNewlines: Left
+
+BinPackArguments: false
+BinPackParameters: false
+PackConstructorInitializers: Never
+
+BreakBeforeBraces: Allman
+BreakBeforeTernaryOperators: false
+BreakConstructorInitializers: AfterColon
+BreakStringLiterals: true
+#include
+IncludeBlocks: Regroup
+SortIncludes: false
+
+SortUsingDeclarations: true
+#spaces
+SpaceAfterCStyleCast: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpaceInEmptyParentheses: false
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: false
+
+
+...

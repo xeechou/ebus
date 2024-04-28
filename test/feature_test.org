@@ -1,0 +1,35 @@
+** testing ~std::invoke~ and ~std::bind~
+The goal is to test whether I can 
+
+
+#+begin_src C++ :includes <functional> <iostream> :main no
+  struct interface {
+          virtual bool request(int) = 0;
+  };
+
+  struct impl : interface {
+          virtual bool request(int a) override { std::cout << "request: " << a << std::endl;
+                  return true;}
+  };
+
+  template<typename function_t, typename T, typename result_t, typename... args_t>
+  void try_invoke(function_t&& func, T& t, result_t& result, args_t&&... args)
+  {
+          auto functor = std::bind(std::forward<function_t>(func), &t,
+                                   std::forward<args_t>(args)...);
+          result = functor();
+          std::cout << "the result of invoke: " << result << std::endl;
+  }
+
+  int main(int argc, char **argv)
+  {
+          impl my_impl;
+          bool result;
+
+          try_invoke(&interface::request, my_impl, result, 6);
+  }
+#+end_src
+
+#+RESULTS:
+| request: |      6 |    |         |   |
+| the      | result | of | invoke: | 1 |
