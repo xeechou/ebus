@@ -2,7 +2,7 @@
 #include <ebus/ebus.hh>
 #include <iostream>
 
-class sample_interface
+class sample_interface : public sp::ebus_iface<sp::ONE_TO_ONE>
 {
 public:
     virtual void event0(int)   = 0;

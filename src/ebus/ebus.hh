@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <functional>
+#include <type_traits>
 #include <typeinfo>
 #include <utility>
 #include <unordered_map>
@@ -19,25 +20,42 @@ concept has_function = requires(T t, function_t&& func, args_t&&... args) {
 namespace sp
 {
 
+enum ebus_type
+{
+    ONE_TO_ONE = 0,
+    ONE_TO_MUL = 1,
+};
+
+template <ebus_type iface_type>
+struct ebus_iface
+{
+    static inline constexpr ebus_type type = iface_type;
+};
+
+// template <class iface, ebus_type iface_type = iface::type>
+// concept EBUS_IFACE = requires { std::is_base_of_v<ebus_iface<iface_type>, iface>; };
+
 /**
  * ebus the event bus interface
  *
- * This ebus interface is an simplified o3de's EBus implementation. That we do
- * not support different types of ebus(singleHandler/MultiHandler) through
- * EBusTraits. We have a simplified ebus_handler implementation.
+ * This ebus interface is an simplified o3de's EBus implementation. We limits
+ * the bus to be either ONE_TO_ONE or ONE_TO_MUL
  *
  */
-template <class interface>
+template <class interface, ebus_type iface_type = interface::type>
+    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
 class ebus;
 
-template <class interface>
+template <class interface, ebus_type iface_type = interface::type>
+    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
 class ebus_handler;
 
-template <class interface>
+template <class interface, ebus_type iface_type>
+    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
 class ebus
 {
 public:
-    using handler_t = ebus_handler<interface>;
+    using handler_t = ebus_handler<interface, iface_type>;
 
     template <typename function_t, typename... args_t>
     static void event(size_t id, function_t&& func, args_t&&... args);
@@ -58,10 +76,11 @@ private:
     handler_t& find_first_handler();
 };
 
-template <class interface>
+template <class interface, ebus_type iface_type>
+    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
 class ebus_handler : public interface
 {
-    friend class ebus<interface>;
+    friend class ebus<interface, iface_type>;
 
 protected:
     // connect via the handler type
@@ -93,16 +112,17 @@ private:
 
     static inline size_t hash_id()
     {
-        return typeid(ebus_handler<interface>).hash_code();
+        return typeid(ebus_handler<interface, iface_type>).hash_code();
     };
 };
 
 /**
  * connect the bus listeners
  */
-template <class interface>
+template <class interface, ebus_type iface_type>
+    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
 void
-ebus_handler<interface>::connect()
+ebus_handler<interface, iface_type>::connect()
 {
     size_t   id  = hash_id();
     context& ctx = get_context();
@@ -110,9 +130,10 @@ ebus_handler<interface>::connect()
     ctx.m_handlers.push_back(m_node);
 }
 
-template <class interface>
+template <class interface, ebus_type iface_type>
+    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
 bool
-ebus_handler<interface>::connect(size_t id)
+ebus_handler<interface, iface_type>::connect(size_t id)
 {
     // we only allow single handler to register with the id.
     auto& id_handlers = get_context().m_id_handlers;
@@ -123,9 +144,10 @@ ebus_handler<interface>::connect(size_t id)
     return true;
 }
 
-template <class interface>
+template <class interface, ebus_type iface_type>
+    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
 bool
-ebus_handler<interface>::disconnect()
+ebus_handler<interface, iface_type>::disconnect()
 {
     if (has_id())
     {
@@ -145,11 +167,11 @@ ebus_handler<interface>::disconnect()
     return true;
 }
 
-template <class interface>
+template <class interface, ebus_type iface_type>
+    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
 template <typename function_t, typename... args_t>
-// requires(has_function<ebus<interface>, function_t, args_t...>)
 void
-ebus<interface>::event(size_t id, function_t&& func, args_t&&... args)
+ebus<interface, iface_type>::event(size_t id, function_t&& func, args_t&&... args)
 {
     typename handler_t::context& ctx = handler_t::get_context();
     if (ctx.m_id_handlers.find(id) != ctx.m_id_handlers.end())
@@ -163,10 +185,11 @@ ebus<interface>::event(size_t id, function_t&& func, args_t&&... args)
     }
 }
 
-template <class interface>
+template <class interface, ebus_type iface_type>
+    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
 template <typename function_t, typename... args_t>
 void
-ebus<interface>::broadcast(function_t&& func, args_t&&... args)
+ebus<interface, iface_type>::broadcast(function_t&& func, args_t&&... args)
 {
     typename handler_t::context& ctx = handler_t::get_context();
     for (handler_t& handler :
@@ -181,10 +204,13 @@ ebus<interface>::broadcast(function_t&& func, args_t&&... args)
     // Do I notify all the id handlers as well?
 }
 
-template <class interface>
+template <class interface, ebus_type iface_type>
+    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
 template <typename result_t, typename function_t, typename... args_t>
 void
-ebus<interface>::invoke(result_t& result, function_t&& func, args_t&&... args)
+ebus<interface, iface_type>::invoke(result_t&    result,
+                                    function_t&& func,
+                                    args_t&&... args)
 {
     // we only gets the result of the first listener
     typename handler_t::context& ctx = handler_t::get_context();
@@ -199,10 +225,14 @@ ebus<interface>::invoke(result_t& result, function_t&& func, args_t&&... args)
     }
 }
 
-template <class interface>
+template <class interface, ebus_type iface_type>
+    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
 template <typename result_t, typename function_t, typename... args_t>
 void
-ebus<interface>::invoke(result_t& result, size_t id, function_t&& func, args_t&&... args)
+ebus<interface, iface_type>::invoke(result_t&    result,
+                                    size_t       id,
+                                    function_t&& func,
+                                    args_t&&... args)
 {
     typename handler_t::context& ctx = handler_t::get_context();
     if (ctx.m_id_handlers.find(id) != ctx.m_id_handlers.end())
