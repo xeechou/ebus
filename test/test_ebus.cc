@@ -2,27 +2,76 @@
 #include <ebus/ebus.hh>
 #include <iostream>
 
-class sample_interface : public sp::ebus_iface<sp::ONE_TO_ONE>
+template <sp::ebus_type TYPE>
+class sample_interface : public sp::ebus_iface<TYPE>
 {
 public:
     virtual void event0(int)   = 0;
     virtual bool request0(int) = 0;
 };
 
-using sample_ebus = sp::ebus<sample_interface>;
+template <sp::ebus_type TYPE>
+using sample_ebus = sp::ebus<sample_interface<TYPE>>;
 
-class sample_ebus_handler : public sp::ebus_handler<sample_interface>
+using sample_id_bus = sp::ebus<sample_interface<sp::IDED>>;
+
+using sample_id_interface = sample_interface<sp::IDED>;
+
+static const size_t ID = 100;
+
+class sample_id_ebus_handler : public sp::ebus_handler<sample_interface<sp::IDED>>
 {
 public:
-    sample_ebus_handler()
+    sample_id_ebus_handler()
     {
-        std::cout << "bus connected" << std::endl;
-        connect();
+        std::cout << "ID bus connected" << std::endl;
+        connect(ID);
     }
-    ~sample_ebus_handler()
+    ~sample_id_ebus_handler()
     {
         disconnect();
-        std::cout << "bus disconnected" << std::endl;
+        std::cout << "ID bus disconnected" << std::endl;
+    }
+
+    virtual void event0(int unused) override
+    {
+        std::cout << "ID: event 0 called with " << unused << std::endl;
+    }
+
+    virtual bool request0(int unused) override
+    {
+        std::cout << "ID: request called with" << unused << std::endl;
+        return true;
+    }
+};
+
+bool
+test_id()
+{
+    sample_id_ebus_handler handler;
+    bool                   result = false;
+
+    sample_id_bus::invoke(result, ID, &sample_id_interface::request0, 0);
+
+    return result;
+}
+
+using sample_type_bus = sp::ebus<sample_interface<sp::TYPED>>;
+
+using sample_type_interface = sample_interface<sp::TYPED>;
+
+class sample_typed_ebus_handler : public sp::ebus_handler<sample_type_interface>
+{
+public:
+    sample_typed_ebus_handler()
+    {
+        std::cout << "typed bus connected" << std::endl;
+        connect();
+    }
+    ~sample_typed_ebus_handler()
+    {
+        disconnect();
+        std::cout << "typed bus disconnected" << std::endl;
     }
 
     virtual void event0(int unused) override
@@ -38,18 +87,16 @@ public:
 };
 
 bool
-test_compile()
+test_typed()
 {
-    sample_ebus_handler handler;
-    bool result = false;
-
-    sample_ebus::broadcast(&sample_interface::event0, 0);
-    sample_ebus::invoke(result, &sample_interface::request0, 0);
+    sample_typed_ebus_handler handler;
+    bool                      result = false;
+    sample_type_bus::invoke(result, &sample_type_interface::request0, 0);
     return result;
 }
 
-
 TEST_CASE("test ebus interface [EBUS]")
 {
-    REQUIRE(test_compile() == true);
+    REQUIRE(test_id() == true);
+    REQUIRE(test_typed() == true);
 }

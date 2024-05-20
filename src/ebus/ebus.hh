@@ -22,8 +22,8 @@ namespace sp
 
 enum ebus_type
 {
-    ONE_TO_ONE = 0,
-    ONE_TO_MUL = 1,
+    TYPED = 0,
+    IDED  = 1,
 };
 
 template <ebus_type iface_type>
@@ -32,8 +32,8 @@ struct ebus_iface
     static inline constexpr ebus_type type = iface_type;
 };
 
-// template <class iface, ebus_type iface_type = iface::type>
-// concept EBUS_IFACE = requires { std::is_base_of_v<ebus_iface<iface_type>, iface>; };
+template <class iface, ebus_type iface_type = iface::type>
+concept EBUS_IFACE = requires { std::is_base_of_v<ebus_iface<iface_type>, iface>; };
 
 /**
  * ebus the event bus interface
@@ -42,53 +42,58 @@ struct ebus_iface
  * the bus to be either ONE_TO_ONE or ONE_TO_MUL
  *
  */
-template <class interface, ebus_type iface_type = interface::type>
-    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
+template <EBUS_IFACE interface>
 class ebus;
 
-template <class interface, ebus_type iface_type = interface::type>
-    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
+template <EBUS_IFACE interface>
 class ebus_handler;
 
-template <class interface, ebus_type iface_type>
-    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
+template <EBUS_IFACE interface>
 class ebus
 {
 public:
-    using handler_t = ebus_handler<interface, iface_type>;
+    using handler_t = ebus_handler<interface>;
 
+    // 1-to-1 ebus event
+    template <typename function_t, typename... args_t>
+    static void event(function_t&& func, args_t&&... args);
+
+    // send event to specific id
     template <typename function_t, typename... args_t>
     static void event(size_t id, function_t&& func, args_t&&... args);
 
-    // broadcast an event
+    // broadcast an event to multi-handlers
     template <typename function_t, typename... args_t>
     static void broadcast(function_t&& func, args_t&&... args);
 
     // invoke non-ided handler function
     template <typename result_t, typename function_t, typename... args_t>
+        requires(interface::type == ebus_type::TYPED)
     static void invoke(result_t& result, function_t&& func, args_t&&... args);
 
     // invoke id handler function
     template <typename result_t, typename function_t, typename... args_t>
+        requires(interface::type == ebus_type::IDED)
     static void invoke(result_t& result, size_t id, function_t&& func, args_t&&... args);
 
 private:
     handler_t& find_first_handler();
 };
 
-template <class interface, ebus_type iface_type>
-    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
+template <EBUS_IFACE interface>
 class ebus_handler : public interface
 {
-    friend class ebus<interface, iface_type>;
+    friend class ebus<interface>;
 
 protected:
-    // connect via the handler type
+    /// connect via handler type. In this case we only allows one_to_one connection
     void connect();
+
     // connect via id. This is additional
     bool connect(size_t id);
     bool disconnect();
-    bool has_id() const { return m_id != -1; }
+
+    static constexpr bool is_ided() { return interface::type == ebus_type::IDED; }
 
 private:
     intrusive_list_node m_node;
@@ -110,32 +115,40 @@ private:
         return s_ctx;
     }
 
+    // hash_id only available for one_to_one ebus_types
+    template <bool enable = interface::type == ebus_type::TYPED>
+        requires(enable)
     static inline size_t hash_id()
     {
-        return typeid(ebus_handler<interface, iface_type>).hash_code();
+        return typeid(ebus_handler<interface>).hash_code();
     };
 };
 
 /**
  * connect the bus listeners
  */
-template <class interface, ebus_type iface_type>
-    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
+template <EBUS_IFACE interface>
 void
-ebus_handler<interface, iface_type>::connect()
+ebus_handler<interface>::connect()
 {
+    static_assert(interface::type == ebus_type::TYPED,
+                  "non-id connect() are reserved for type based ebus handlers");
     size_t   id  = hash_id();
     context& ctx = get_context();
 
     ctx.m_handlers.push_back(m_node);
 }
 
-template <class interface, ebus_type iface_type>
-    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
+/**
+ * connect
+ */
+template <EBUS_IFACE interface>
 bool
-ebus_handler<interface, iface_type>::connect(size_t id)
+ebus_handler<interface>::connect(size_t id)
 {
-    // we only allow single handler to register with the id.
+    static_assert(interface::type == ebus_type::IDED,
+                  "id connect(id) are reserved for id based ebus handlers");
+
     auto& id_handlers = get_context().m_id_handlers;
     if (id_handlers.find(id) != id_handlers.end())
         return false;
@@ -144,12 +157,11 @@ ebus_handler<interface, iface_type>::connect(size_t id)
     return true;
 }
 
-template <class interface, ebus_type iface_type>
-    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
+template <EBUS_IFACE interface>
 bool
-ebus_handler<interface, iface_type>::disconnect()
+ebus_handler<interface>::disconnect()
 {
-    if (has_id())
+    if (is_ided())
     {
         auto& id_handlers = get_context().m_id_handlers;
         if (id_handlers.find(m_id) == id_handlers.end())
@@ -167,12 +179,14 @@ ebus_handler<interface, iface_type>::disconnect()
     return true;
 }
 
-template <class interface, ebus_type iface_type>
-    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
+template <EBUS_IFACE interface>
 template <typename function_t, typename... args_t>
 void
-ebus<interface, iface_type>::event(size_t id, function_t&& func, args_t&&... args)
+ebus<interface>::event(size_t id, function_t&& func, args_t&&... args)
 {
+    static_assert(interface::type == ebus_type::IDED,
+                  "event(id) is reserved only for id based ebus");
+
     typename handler_t::context& ctx = handler_t::get_context();
     if (ctx.m_id_handlers.find(id) != ctx.m_id_handlers.end())
     {
@@ -185,12 +199,14 @@ ebus<interface, iface_type>::event(size_t id, function_t&& func, args_t&&... arg
     }
 }
 
-template <class interface, ebus_type iface_type>
-    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
+template <EBUS_IFACE interface>
 template <typename function_t, typename... args_t>
 void
-ebus<interface, iface_type>::broadcast(function_t&& func, args_t&&... args)
+ebus<interface>::broadcast(function_t&& func, args_t&&... args)
 {
+    static_assert(interface::type == ebus_type::TYPED,
+                  "broadcast() is reserved only for type based ebus");
+
     typename handler_t::context& ctx = handler_t::get_context();
     for (handler_t& handler :
          intrusive_list_iterable<handler_t>(ctx.m_handlers, &handler_t::m_node))
@@ -201,17 +217,17 @@ ebus<interface, iface_type>::broadcast(function_t&& func, args_t&&... args)
                                  std::forward<args_t>(args)...);
         functor();
     }
-    // Do I notify all the id handlers as well?
 }
 
-template <class interface, ebus_type iface_type>
-    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
+template <EBUS_IFACE interface>
 template <typename result_t, typename function_t, typename... args_t>
+    requires(interface::type == ebus_type::TYPED)
 void
-ebus<interface, iface_type>::invoke(result_t&    result,
-                                    function_t&& func,
-                                    args_t&&... args)
+ebus<interface>::invoke(result_t& result, function_t&& func, args_t&&... args)
 {
+    static_assert(interface::type == ebus_type::TYPED,
+                  "invoke() without id is only reserved for type based ebus");
+
     // we only gets the result of the first listener
     typename handler_t::context& ctx = handler_t::get_context();
     for (handler_t& handler :
@@ -225,22 +241,22 @@ ebus<interface, iface_type>::invoke(result_t&    result,
     }
 }
 
-template <class interface, ebus_type iface_type>
-    requires std::is_base_of_v<ebus_iface<iface_type>, interface>
+template <EBUS_IFACE interface>
 template <typename result_t, typename function_t, typename... args_t>
+    requires(interface::type == ebus_type::IDED)
 void
-ebus<interface, iface_type>::invoke(result_t&    result,
-                                    size_t       id,
-                                    function_t&& func,
-                                    args_t&&... args)
+ebus<interface>::invoke(result_t& result, size_t id, function_t&& func, args_t&&... args)
 {
+    static_assert(interface::type == ebus_type::IDED,
+                  "invoke(id) is reserved only for id based ebus");
+
     typename handler_t::context& ctx = handler_t::get_context();
     if (ctx.m_id_handlers.find(id) != ctx.m_id_handlers.end())
     {
-        handler_t& handler = ctx.m_id_handlers.at(id);
+        handler_t* handler = ctx.m_id_handlers.at(id);
 
         auto exec = std::bind(std::forward<function_t>(func),
-                              &handler,
+                              handler,
                               std::forward<args_t>(args)...);
         result    = exec();
     }
