@@ -3,6 +3,7 @@
 #include <concepts>
 #include <memory>
 #include <type_traits>
+#include <assert.h>
 
 namespace sp
 {
@@ -150,13 +151,13 @@ public:
 
     T* operator->() const
     {
-        assert(m_px != nullptr, "You cannot de-reference a nullptr");
+        assert(m_px != nullptr && "You cannot de-reference a nullptr");
         return m_px;
     }
 
     T& operator*() const
     {
-        assert(m_px != nullptr, "You can't de-reference a nullptr");
+        assert(m_px != nullptr && "You can't de-reference a nullptr");
         return *m_px;
     }
 
