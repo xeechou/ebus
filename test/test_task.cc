@@ -5,7 +5,7 @@
 #include <iostream>
 #include <thread>
 
-class test_task : public sp::task<sp::TYPED>
+class test_task : public sp::task<sp::GLOBAL>
 {
 public:
     test_task(int id) :
