@@ -1,2 +1,3 @@
+#pragma once
 #include "ebus.def.hh"
-#include "ebus.inl"
+#include "ebus.inl.hh"
