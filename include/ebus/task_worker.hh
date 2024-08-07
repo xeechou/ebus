@@ -1,9 +1,10 @@
 #pragma once
 
+#include "task.hh"
+#include "ebus/memory/intrusive_ptr.hh"
+
 #include <atomic>
 #include <semaphore>
-#include <memory/intrusive_ptr.hh>
-#include <task/task.hh>
 
 namespace sp
 {

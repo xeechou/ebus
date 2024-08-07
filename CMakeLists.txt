@@ -15,7 +15,13 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-add_subdirectory(src)
+add_library(ebus
+  src/task/task_worker.cc
+)
+
+target_include_directories(ebus
+  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
+  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 if (${EBUS_ENABLE_TESTING})
   add_subdirectory(test)

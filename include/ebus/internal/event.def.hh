@@ -1,6 +1,6 @@
 #pragma once
 
-#include "memory/intrusive_list.hh"
+#include "ebus/memory/intrusive_list.hh"
 
 #include <functional>
 #include <atomic>

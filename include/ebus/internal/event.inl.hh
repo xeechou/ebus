@@ -1,7 +1,7 @@
 #pragma once
 
 #include "event.def.hh"
-#include "memory/intrusive_list.hh"
+#include "ebus/memory/intrusive_list.hh"
 
 namespace sp
 {
