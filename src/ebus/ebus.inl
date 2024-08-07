@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ebus.def.hh"
-#include "memory/intrusive_list.hh"
 
 #include <functional>
 #include <utility>
@@ -114,11 +113,15 @@ ebus<interface>::multicast(size_t id, function_t&& func, args_t&&... args)
     // find the group
     if (itr != ctx.m_group_handlers.end())
     {
-        intrusive_list& head = itr->second;
-        for (handler_t& handler :
-             intrusive_list_iterable<handler_t>(head, &handler_t::m_node))
+        intrusive_list&                    head = itr->second;
+        intrusive_list_iterable<handler_t> iterable(head, &handler_t::m_node);
+        // safe loop to allow modifying pos node during the loop
+        for (intrusive_list_iterator<handler_t> pos = iterable.begin(), tmp = pos.next();
+             pos != iterable.end();
+             pos = tmp, tmp = tmp.next())
         {
-            auto functor = std::bind(std::forward<function_t>(func),
+            handler_t& handler = *pos;
+            auto       functor = std::bind(std::forward<function_t>(func),
                                      &handler,
                                      std::forward<args_t>(args)...);
             functor();
@@ -134,12 +137,15 @@ ebus<interface>::broadcast(function_t&& func, args_t&&... args)
     static_assert(interface::type == ebus_type::GLOBAL,
                   "broadcast() is reserved only for global type ebus");
 
-    typename handler_t::ctx& ctx = handler_t::get_context();
-    for (handler_t& handler :
-         intrusive_list_iterable<handler_t>(ctx.m_handlers, &handler_t::m_node))
+    typename handler_t::ctx&           ctx = handler_t::get_context();
+    intrusive_list_iterable<handler_t> iterable(ctx.m_handlers, &handler_t::m_node);
+    // safe loop to allow modifying pos node during the loop
+    for (intrusive_list_iterator<handler_t> pos = iterable.begin(), tmp = pos.next();
+         pos != iterable.end();
+         pos = tmp, tmp = tmp.next())
     {
-        // we are using the feature of bind to a pointer to member function: "
-        auto functor = std::bind(std::forward<function_t>(func),
+        handler_t& handler = *pos;
+        auto       functor = std::bind(std::forward<function_t>(func),
                                  &handler,
                                  std::forward<args_t>(args)...);
         functor();
@@ -156,14 +162,19 @@ ebus<interface>::invoke(result_t& result, function_t&& func, args_t&&... args)
                   "invoke() without id is only reserved for type based ebus");
 
     // we only gets the result of the first listener
-    typename handler_t::ctx& ctx = handler_t::get_context();
-    for (handler_t& handler :
-         intrusive_list_iterable<handler_t>(ctx.m_handlers, &handler_t::m_node))
+    typename handler_t::ctx&           ctx = handler_t::get_context();
+    intrusive_list_iterable<handler_t> iterable(ctx.m_handlers, &handler_t::m_node);
+
+    for (intrusive_list_iterator<handler_t> pos = iterable.begin(), tmp = pos.next();
+         pos != iterable.end();
+         pos = tmp, tmp = tmp.next())
     {
-        auto exec = std::bind(std::forward<function_t>(func),
+        handler_t& handler = *pos;
+        auto       exec    = std::bind(std::forward<function_t>(func),
                               &handler,
                               std::forward<args_t>(args)...);
-        result    = exec();
+
+        result = exec();
         break;
     }
 }
@@ -203,12 +214,17 @@ ebus<interface>::invoke(result_t& result, size_t id, function_t&& func, args_t&&
     // find the group
     if (itr != ctx.m_group_handlers.end())
     {
-        intrusive_list& head = itr->second;
-        // we only get result from first listener
-        for (handler_t& handler :
-             intrusive_list_iterable<handler_t>(head, &handler_t::m_node))
+        intrusive_list&                    head = itr->second;
+        intrusive_list_iterable<handler_t> iterable(head, &handler_t::m_node);
+
+        // we only gets the result of the first listener
+        // using safe loop to allow modifying pos node during the loop
+        for (intrusive_list_iterator<handler_t> pos = iterable.begin(), tmp = pos.next();
+             pos != iterable.end();
+             pos = tmp, tmp = tmp.next())
         {
-            auto exec = std::bind(std::forward<function_t>(func),
+            handler_t& handler = *pos;
+            auto       exec    = std::bind(std::forward<function_t>(func),
                                   &handler,
                                   std::forward<args_t>(args)...);
             result    = exec();
