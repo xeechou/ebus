@@ -37,4 +37,9 @@ add_executable(test_event test_event.cc)
 target_link_libraries(test_event PRIVATE Catch2::Catch2WithMain ebus)
 catch_discover_tests(test_event)
 
+add_executable(test_ebus_ref test_ebus_ref.cc)
+target_link_libraries(test_ebus_ref PRIVATE Catch2::Catch2WithMain ebus)
+catch_discover_tests(test_ebus_ref)
+
+
 #then I can simply run `ctest --test-dir build/test` to run the tests
