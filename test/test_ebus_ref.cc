@@ -19,7 +19,7 @@ private:
     int m_value;
 };
 
-class sample_interface : public sp::ebus_iface<sp::ebus_type::GLOBAL>
+class sample_interface : public EBUS_NS::ebus_iface<EBUS_NS::ebus_type::GLOBAL>
 {
 public:
     virtual void event0(const sample_class& ref) = 0;
@@ -27,9 +27,9 @@ public:
     virtual bool request0(const sample_class& ref) = 0;
 };
 
-typedef sp::ebus<sample_interface> sample_bus;
+typedef EBUS_NS::ebus<sample_interface> sample_bus;
 
-class sample_ebus_handler : public sp::ebus_handler<sample_interface>
+class sample_ebus_handler : public EBUS_NS::ebus_handler<sample_interface>
 {
 public:
     sample_ebus_handler(int value) :

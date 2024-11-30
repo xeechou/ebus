@@ -1,11 +1,14 @@
 #pragma once
 
+#ifndef INTRUSIVE_NS
+#    define INTRUSIVE_NS EBUS_NS
+#endif
 #include "ebus/memory/intrusive_list.hh"
 
 #include <functional>
 #include <atomic>
 
-namespace sp
+namespace EBUS_NS
 {
 
 template <typename... args>
@@ -76,4 +79,4 @@ protected:
     mutable std::mutex m_handlers_lock;
 };
 
-} // namespace sp
+} // namespace EBUS_NS

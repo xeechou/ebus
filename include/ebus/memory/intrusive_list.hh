@@ -1,10 +1,14 @@
 #pragma once
 
+#ifndef INTRUSIVE_NS
+#    define INTRUSIVE_NS ITRV_NS
+#endif
+
 #include <stdint.h>
 #include <stddef.h>
 #include <iterator>
 
-namespace sp
+namespace INTRUSIVE_NS
 {
 
 class intrusive_list_node;
@@ -326,4 +330,4 @@ public:
 //      reinterpret_cast< ptrdiff_t >( &( reinterpret_cast< T* >( 0 )->*member ) ) );
 // }
 
-} // namespace sp
+} // namespace INTRUSIVE_NS

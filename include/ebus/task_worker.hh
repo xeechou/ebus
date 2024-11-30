@@ -6,7 +6,7 @@
 #include <atomic>
 #include <semaphore>
 
-namespace sp
+namespace EBUS_NS
 {
 
 /**
@@ -26,4 +26,4 @@ protected:
     std::atomic_bool                     m_live = true;
 };
 
-} // namespace sp
+} // namespace EBUS_NS

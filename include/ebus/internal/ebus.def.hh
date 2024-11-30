@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef INTRUSIVE_NS
+#    define INTRUSIVE_NS EBUS_NS
+#endif
 #include "ebus/memory/intrusive_list.hh"
 
 #include <cstddef>
@@ -13,7 +16,7 @@ concept has_function = requires(T t, function_t&& func, args_t&&... args) {
     { t.func(args...) };
 };
 
-namespace sp
+namespace EBUS_NS
 {
 
 enum ebus_type
@@ -127,4 +130,4 @@ private:
     };
 };
 
-} // namespace sp
+} // namespace EBUS_NS
