@@ -1,7 +1,7 @@
 #include "ebus/task_worker.hh"
 #include <atomic>
 
-namespace sp
+namespace EBUS_NS
 {
 
 void
@@ -40,4 +40,4 @@ task_worker::add_task(intrusive_ptr<task_base> task)
     return true;
 }
 
-} // namespace sp
+} // namespace EBUS_NS

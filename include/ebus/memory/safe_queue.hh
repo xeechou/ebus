@@ -3,7 +3,7 @@
 #include <vector>
 #include <functional>
 
-namespace sp
+namespace EBUS_NS
 {
 
 ///@brief the safe_queue allows you to visit the
@@ -32,4 +32,4 @@ private:
     std::vector<T> m_executions;
 };
 
-} // namespace sp
+} // namespace EBUS_NS

@@ -5,7 +5,7 @@
 
 #include <ebus/ebus.hh>
 
-namespace sp
+namespace EBUS_NS
 {
 
 /**
@@ -45,4 +45,4 @@ struct task : public task_base, ebus_iface<iface_type>
 {
 };
 
-} // namespace sp
+} // namespace EBUS_NS

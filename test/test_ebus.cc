@@ -2,8 +2,8 @@
 #include <ebus/ebus.hh>
 #include <iostream>
 
-template <sp::ebus_type TYPE>
-class sample_interface : public sp::ebus_iface<TYPE>
+template <EBUS_NS::ebus_type TYPE>
+class sample_interface : public EBUS_NS::ebus_iface<TYPE>
 {
 public:
     virtual void event0(int)   = 0;
@@ -11,18 +11,19 @@ public:
     virtual void event1(std::string&) = 0;
 };
 
-template <sp::ebus_type TYPE>
-using sample_ebus = sp::ebus<sample_interface<TYPE>>;
+template <EBUS_NS::ebus_type TYPE>
+using sample_ebus = EBUS_NS::ebus<sample_interface<TYPE>>;
 
-using sample_id_bus = sp::ebus<sample_interface<sp::ONE2ONE>>;
+using sample_id_bus = EBUS_NS::ebus<sample_interface<EBUS_NS::ONE2ONE>>;
 
-using sample_id_interface = sample_interface<sp::ONE2ONE>;
+using sample_id_interface = sample_interface<EBUS_NS::ONE2ONE>;
 
 static const size_t ID = 100;
 //////////////////////////////////////////////////////////////////////////////////////
 // ID
 //////////////////////////////////////////////////////////////////////////////////////
-class sample_id_ebus_handler : public sp::ebus_handler<sample_interface<sp::ONE2ONE>>
+class sample_id_ebus_handler
+    : public EBUS_NS::ebus_handler<sample_interface<EBUS_NS::ONE2ONE>>
 {
 public:
     sample_id_ebus_handler()
@@ -70,11 +71,11 @@ test_id()
 // global
 //////////////////////////////////////////////////////////////////////////////////////
 
-using sample_type_bus = sp::ebus<sample_interface<sp::GLOBAL>>;
+using sample_type_bus = EBUS_NS::ebus<sample_interface<EBUS_NS::GLOBAL>>;
 
-using sample_type_interface = sample_interface<sp::GLOBAL>;
+using sample_type_interface = sample_interface<EBUS_NS::GLOBAL>;
 
-class sample_typed_ebus_handler : public sp::ebus_handler<sample_type_interface>
+class sample_typed_ebus_handler : public EBUS_NS::ebus_handler<sample_type_interface>
 {
 public:
     sample_typed_ebus_handler()
@@ -119,10 +120,10 @@ test_typed()
 // group
 //////////////////////////////////////////////////////////////////////////////////////
 
-using sample_group_bus       = sp::ebus<sample_interface<sp::GROUP>>;
-using sample_group_interface = sample_interface<sp::GROUP>;
+using sample_group_bus       = EBUS_NS::ebus<sample_interface<EBUS_NS::GROUP>>;
+using sample_group_interface = sample_interface<EBUS_NS::GROUP>;
 
-class sample_group_ebus_handler : public sp::ebus_handler<sample_group_interface>
+class sample_group_ebus_handler : public EBUS_NS::ebus_handler<sample_group_interface>
 {
 public:
     sample_group_ebus_handler(size_t id) :

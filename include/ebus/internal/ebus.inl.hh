@@ -5,7 +5,7 @@
 #include <functional>
 #include <utility>
 
-namespace sp
+namespace EBUS_NS
 {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -233,4 +233,4 @@ ebus<interface>::invoke(result_t& result, size_t id, function_t&& func, args_t&&
     }
 }
 
-} // namespace sp
+} // namespace EBUS_NS

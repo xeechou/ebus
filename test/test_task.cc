@@ -6,7 +6,7 @@
 #include <iostream>
 #include <thread>
 
-class test_task : public sp::task<sp::GLOBAL>
+class test_task : public EBUS_NS::task<EBUS_NS::GLOBAL>
 {
 public:
     test_task(int id) :
@@ -62,7 +62,7 @@ private:
 bool
 test_task_worker()
 {
-    sp::task_worker worker;
+    EBUS_NS::task_worker worker;
 
     std::thread worker_thread([&worker]() { worker(); });
     worker_thread.detach();
@@ -72,7 +72,7 @@ test_task_worker()
 
     for (int i = 0; i < 10; i++)
     {
-        worker.add_task(sp::intrusive_ptr<test_task>(new test_task(i)));
+        worker.add_task(EBUS_NS::intrusive_ptr<test_task>(new test_task(i)));
         std::cout << "adding task " << i << std::endl;
     }
 

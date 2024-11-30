@@ -3,7 +3,7 @@
 #include "event.def.hh"
 #include "ebus/memory/intrusive_list.hh"
 
-namespace sp
+namespace EBUS_NS
 {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -144,4 +144,4 @@ event<args...>::connect(handler& handler)
     m_head.push_back(handler.m_node);
 }
 
-} // namespace sp
+} // namespace EBUS_NS

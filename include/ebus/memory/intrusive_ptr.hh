@@ -1,11 +1,15 @@
 #pragma once
 
-#include <concepts>
-#include <memory>
-#include <type_traits>
-#include <assert.h>
+#ifndef INTRUSIVE_NS
+#    define INTRUSIVE_NS ITRV_NS
+#endif
 
-namespace sp
+#include <concepts>
+#    include <memory>
+#    include <type_traits>
+#    include <assert.h>
+
+namespace INTRUSIVE_NS
 {
 
 /**
@@ -268,7 +272,7 @@ dynamic_pointer_cast(intrusive_ptr<U> const& p)
     return dynamic_cast<T*>(p.get());
 }
 
-} // namespace sp
+} // namespace INTRUSIVE_NS
 
 ///////////////////////////////////////////////////////////////////////////
 // hash support
@@ -278,9 +282,9 @@ namespace std
 {
 // hashing support for STL containers
 template <typename T>
-struct hash<sp::intrusive_ptr<T>>
+struct hash<INTRUSIVE_NS::intrusive_ptr<T>>
 {
-    inline size_t operator()(const sp::intrusive_ptr<T>& value) const
+    inline size_t operator()(const INTRUSIVE_NS::intrusive_ptr<T>& value) const
     {
         return hash<T*>()(value.get());
     }
