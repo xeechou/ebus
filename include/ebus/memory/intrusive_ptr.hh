@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef INTRUSIVE_NS
-#    define INTRUSIVE_NS ITRV_NS
+#    define INTRUSIVE_NS _itrv_
 #endif
 
 #include <concepts>

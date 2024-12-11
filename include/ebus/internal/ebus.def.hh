@@ -1,9 +1,13 @@
 #pragma once
 
+#ifndef EBUS_NS
+#define EBUS_NS _ebus_
+#endif
+
 #ifndef INTRUSIVE_NS
 #    define INTRUSIVE_NS EBUS_NS
 #endif
-#include "ebus/memory/intrusive_list.hh"
+#include "../memory/intrusive_list.hh"
 
 #include <cstddef>
 #include <type_traits>
@@ -100,7 +104,7 @@ protected:
     static constexpr bool is_one2one() { return interface::type == ebus_type::ONE2ONE; }
 
 private:
-    intrusive_list_node m_node;
+    INTRUSIVE_NS::intrusive_list_node m_node;
     ssize_t             m_id = -1;
 
     /**
@@ -108,10 +112,10 @@ private:
      */
     struct ctx
     {
-        intrusive_list                             m_handlers;
+        INTRUSIVE_NS::intrusive_list               m_handlers;
         std::unordered_map<size_t, ebus_handler*>  m_id_handlers;
-        std::unordered_map<size_t, intrusive_list> m_group_handlers;
-        using group_itr = std::unordered_map<size_t, intrusive_list>::iterator;
+        std::unordered_map<size_t, INTRUSIVE_NS::intrusive_list> m_group_handlers;
+        using group_itr = std::unordered_map<size_t, INTRUSIVE_NS::intrusive_list>::iterator;
     };
 
     static ctx& get_context()
