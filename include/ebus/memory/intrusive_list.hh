@@ -236,6 +236,8 @@ public:
         return this->m_node != rhs.m_node;
     }
     reference operator*() const { return *(this->m_node->container(this->m_member)); }
+    pointer   operator->() const { return (this->m_node->container(this->m_member)); }
+
     intrusive_list_iterator<T>& operator++()
     {
         this->m_node = this->m_node->m_next;
