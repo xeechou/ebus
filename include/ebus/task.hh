@@ -3,6 +3,8 @@
 #include <deque>
 #include <functional>
 
+#include <ebus/memory/intrusive_ptr.hh>
+
 #include <ebus/ebus.hh>
 
 namespace EBUS_NS
@@ -26,6 +28,9 @@ namespace EBUS_NS
  */
 struct task_base
 {
+    using ptr     = INTRUSIVE_NS::intrusive_ptr<task_base>;
+    using exec_fn = std::function<bool(void)>;
+
     bool exec() { return m_function(); }
 
     // this should defines a done event for the task, the subclass t
