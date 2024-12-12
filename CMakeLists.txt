@@ -26,6 +26,7 @@ endif()
 
 add_library(ebus
   src/task/task_worker.cc
+  src/task/task_scheduler.cc
 )
 
 target_include_directories(ebus

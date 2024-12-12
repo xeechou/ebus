@@ -15,8 +15,9 @@ namespace EBUS_NS
 class task_worker
 {
 public:
-    bool add_task(task_base::ptr task);
-    void operator()();
+    bool   add_task(task_base::ptr task);
+    size_t size() const { return m_tasks.size(); }
+    void   operator()();
 
     void shutdown();
 

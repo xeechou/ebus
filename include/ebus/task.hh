@@ -33,7 +33,7 @@ struct task_base
 
     bool exec() { return m_function(); }
 
-    // this should defines a done event for the task, the subclass t
+    // this should defines a done event for the task, the subclass
     virtual void task_done() = 0;
 
     //////////////////////////////////////////////////////////////////////////
@@ -45,9 +45,19 @@ struct task_base
     std::function<bool(void)> m_function; // return true if success.
 };
 
-template <ebus_type iface_type>
-struct task : public task_base, ebus_iface<iface_type>
+struct rescheduable_task : task_base
 {
+    using ptr     = INTRUSIVE_NS::intrusive_ptr<rescheduable_task>;
+    using fini_fn = std::function<void(void)>;
+
+    /// API to support task rescheduling
+    virtual ptr reschedule(task_base::exec_fn&& exec) = 0;
+    // API to mark the task has no following task need to execute
+
+    // TODO How do I get the output from previous task? Or we don't. The users simply
+    // rely on the capture context for data sharing. I don't need type casting
+    // in that case
+    virtual void finish(fini_fn&& fini) = 0;
 };
 
 } // namespace EBUS_NS
