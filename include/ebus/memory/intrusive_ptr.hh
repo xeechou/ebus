@@ -165,7 +165,8 @@ public:
         return *m_px;
     }
 
-    bool operator!() const { return m_px == 0; }
+    bool     operator!() const { return m_px == 0; }
+    explicit operator bool() const { return m_px != nullptr; }
 
     ///////////////////////////////////////////////////////////////////////////
     // member functions
