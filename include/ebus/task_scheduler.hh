@@ -20,9 +20,17 @@ class task_worker;
  */
 struct task_scheduler_iface : public ebus_iface<ebus_type::GLOBAL>
 {
-    /// scheduling a new task. The implementation should load balance the task_worker
-    /// it owns.
-    virtual task_base::ptr add_task(task_base::exec_fn&&) = 0;
+    /// @brief adding a single task
+    ///
+    /// user is responsible to prepare the task's implementation. The task is
+    /// expected to be scheduled immediately
+    virtual void add_task(task_base::ptr task) = 0;
+
+    /// @brief Adding a reschedule-able task.
+    ///
+    /// The implementation should wait for rescheduable_task::done() to
+    /// actually adding the task to the system, for the thread safety.
+    virtual rescheduable_task::ptr add_rescheduable_task(task_base::exec_fn&&) = 0;
 };
 
 using task_scheduler_bus = ebus<task_scheduler_iface>;
