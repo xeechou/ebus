@@ -10,6 +10,23 @@
 namespace EBUS_NS
 {
 
+struct rescheduable_task : task_base
+{
+    using ptr     = INTRUSIVE_NS::intrusive_ptr<rescheduable_task>;
+    using fini_fn = std::function<void(void)>;
+
+    /// API to support task rescheduling
+    virtual ptr reschedule(task_base::exec_fn&& exec) = 0;
+    // API to mark the task has no following task need to execute
+
+    // TODO How do I get the output from previous task? Or we don't. The users simply
+    // rely on the capture context for data sharing. I don't need type casting
+    // in that case
+    virtual void finish(fini_fn&& fini) = 0;
+
+    fini_fn m_fini_task;
+};
+
 class task_worker;
 
 /**
