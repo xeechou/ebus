@@ -45,7 +45,8 @@ class default_task_scheduler : public ebus_handler<task_scheduler_iface>
     using handler_t = ebus_handler<task_scheduler_iface>;
 
 public:
-    task_base::ptr add_task(task_base::exec_fn&& exec_func) override;
+    void                   add_task(task_base::ptr task) override;
+    rescheduable_task::ptr add_rescheduable_task(task_base::exec_fn&&) override;
 
     default_task_scheduler();
     ~default_task_scheduler();
