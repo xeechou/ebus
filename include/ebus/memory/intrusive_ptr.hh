@@ -180,7 +180,7 @@ public:
     void swap(intrusive_ptr& rhs)
     {
         T* tmp   = m_px;
-        m_px     = rhs.px;
+        m_px     = rhs.m_px;
         rhs.m_px = tmp;
     }
 
