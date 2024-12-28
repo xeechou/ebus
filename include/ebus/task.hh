@@ -31,6 +31,12 @@ struct task_base
     using ptr     = INTRUSIVE_NS::intrusive_ptr<task_base>;
     using exec_fn = std::function<bool(void)>;
 
+    task_base(exec_fn fn = []() { return true; }) :
+        m_function(fn)
+    {
+    }
+    virtual ~task_base() {}
+
     bool exec() { return m_function(); }
 
     // this should defines a done event for the task, the subclass

@@ -1,0 +1,69 @@
+#include <ebus/task_scheduler.hh>
+#include <catch2/catch_test_macros.hpp>
+
+#include <thread>
+#include <iostream>
+
+//////////////////////////////////////////////////////////////////////////////////////
+// oneshot task
+//////////////////////////////////////////////////////////////////////////////////////
+namespace EBUS_NS
+{
+
+class oneshot_task final : public task_base
+{
+public:
+    oneshot_task(int i) :
+        task_base(
+            [i]()
+            {
+                std::cout << "oneshot_task " << i << " executing..." << std::endl;
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+                return true;
+            }),
+        m_i(i)
+    {
+    }
+
+    virtual ~oneshot_task() {}
+
+    /// overrides
+    virtual void task_done() override
+    {
+        std::cout << "oneshot_task" << m_i << " done" << std::endl;
+    }
+
+    virtual void add_ref() override { ++m_refcount; }
+
+    virtual void release() override
+    {
+        if (--m_refcount <= 0)
+            delete this;
+    }
+
+private:
+    const int m_i;
+    int       m_refcount = 0;
+};
+
+bool
+test_oneshot()
+{
+    // should be hooked to it.
+    default_task_scheduler scheduler;
+
+    for (unsigned i = 0; i < 10; i++)
+    {
+        task_base::ptr oneshot(new oneshot_task(i));
+        task_scheduler_bus::broadcast(&task_scheduler_iface::add_task, oneshot);
+    }
+
+    return true;
+}
+
+} // namespace EBUS_NS
+
+//////////////////////////////////////////////////////////////////////////////////////
+// main
+//////////////////////////////////////////////////////////////////////////////////////
+TEST_CASE("test task scheduler [TASK]") { REQUIRE(EBUS_NS::test_oneshot() == true); }
