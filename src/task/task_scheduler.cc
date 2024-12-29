@@ -113,23 +113,21 @@ default_task_scheduler::default_task_scheduler()
     handler_t::connect();
     // get number of workers, minimum is 2, or we have enough
     size_t nworkers = std::max((unsigned)2, std::thread::hardware_concurrency());
-    // task_worker is not movable...
-    m_workers.resize(nworkers);
-
     // creating the number of threads to schedule for tasks
     for (size_t i = 0; i < nworkers; i++)
     {
+        m_workers.emplace_back(std::unique_ptr<task_worker>(new task_worker));
         m_worker_threads.emplace_back(std::thread([this, i] { (*m_workers[i])(); }));
-        m_worker_threads.back().detach();
     }
 }
 
 default_task_scheduler::~default_task_scheduler()
 {
     handler_t::disconnect();
-    for (auto& worker : m_workers)
+    for (size_t i = 0; i < m_workers.size(); i++)
     {
-        worker->shutdown();
+        m_workers[i]->shutdown();
+        m_worker_threads[i].join();
     }
 }
 
@@ -156,6 +154,7 @@ default_task_scheduler::add_rescheduable_task(task_base::exec_fn&& fn)
     // you are running into raise conditions, I suggest you call task_worker in
     // reschedule or done event.
     rescheduable_task::ptr new_task(new simple_task(std::move(fn)));
+    return new_task;
 }
 
 } // namespace EBUS_NS

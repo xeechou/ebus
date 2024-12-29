@@ -42,7 +42,7 @@ target_link_libraries(test_ebus_ref PRIVATE Catch2::Catch2WithMain ebus)
 catch_discover_tests(test_ebus_ref)
 
 
-add_executable(test_scheduler test_task_scheduler.cc)
+add_executable(test_scheduler test_task_scheduler.cc util.cc)
 target_link_libraries(test_scheduler PRIVATE Catch2::Catch2WithMain ebus)
 catch_discover_tests(test_scheduler)
 

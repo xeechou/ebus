@@ -1,6 +1,8 @@
+#include "util.hh"
 #include <ebus/task_scheduler.hh>
 #include <catch2/catch_test_macros.hpp>
 
+#include <string>
 #include <thread>
 #include <iostream>
 
@@ -17,7 +19,9 @@ public:
         task_base(
             [i]()
             {
-                std::cout << "oneshot_task " << i << " executing..." << std::endl;
+                std::stringstream output;
+                output << "oneshot_task " << i << " executing..." << std::endl;
+                test::sync_output(output);
                 std::this_thread::sleep_for(std::chrono::seconds(1));
                 return true;
             }),
@@ -30,7 +34,9 @@ public:
     /// overrides
     virtual void task_done() override
     {
-        std::cout << "oneshot_task" << m_i << " done" << std::endl;
+        std::stringstream output;
+        output << "oneshot_task " << m_i << " done" << std::endl;
+        test::sync_output(output);
     }
 
     virtual void add_ref() override { ++m_refcount; }
@@ -50,13 +56,16 @@ bool
 test_oneshot()
 {
     // should be hooked to it.
-    default_task_scheduler scheduler;
-
-    for (unsigned i = 0; i < 10; i++)
     {
-        task_base::ptr oneshot(new oneshot_task(i));
-        task_scheduler_bus::broadcast(&task_scheduler_iface::add_task, oneshot);
+        default_task_scheduler scheduler;
+        std::cout << "task scheduler started" << std::endl;
+        for (unsigned i = 0; i < 10; i++)
+        {
+            task_base::ptr oneshot(new oneshot_task(i));
+            task_scheduler_bus::broadcast(&task_scheduler_iface::add_task, oneshot);
+        }
     }
+    std::cout << "task scheduler ended" << std::endl;
 
     return true;
 }
