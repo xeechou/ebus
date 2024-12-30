@@ -9,7 +9,7 @@ task_worker::shutdown()
 {
     m_live = false;
     // special function to trigger the worker to wake.
-    m_sem.release();
+    m_tasks.push(INTRUSIVE_NS::intrusive_ptr<task_base>{});
 }
 
 void
@@ -17,15 +17,10 @@ task_worker::operator()()
 {
     while (m_live)
     {
-        // coming from add_task() or shutdown()
-        m_sem.acquire();
+        auto task = m_tasks.pop();
 
-        if (!m_tasks.empty())
+        if (task) // if we come from shutdown, the task is empty here.
         {
-            // pop the task out
-            auto task = m_tasks.front();
-            m_tasks.pop_front();
-
             task->exec();
             task->task_done();
         }
@@ -35,8 +30,7 @@ task_worker::operator()()
 bool
 task_worker::add_task(intrusive_ptr<task_base> task)
 {
-    m_tasks.push_back(task);
-    m_sem.release();
+    m_tasks.push(task);
     return true;
 }
 

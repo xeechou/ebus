@@ -1,10 +1,9 @@
 #pragma once
 
 #include "task.hh"
-#include "ebus/memory/intrusive_ptr.hh"
+#include "ebus/memory/safe_queue.hh"
 
 #include <atomic>
-#include <semaphore>
 
 namespace EBUS_NS
 {
@@ -16,14 +15,13 @@ class task_worker
 {
 public:
     bool   add_task(task_base::ptr task);
-    size_t size() const { return m_tasks.size(); }
+    size_t size() { return m_tasks.size(); }
     void   operator()();
 
     void shutdown();
 
 protected:
-    std::deque<task_base::ptr> m_tasks;
-    std::binary_semaphore      m_sem{0};
+    safe_queue<task_base::ptr> m_tasks;
     std::atomic_bool           m_live = true;
 };
 
