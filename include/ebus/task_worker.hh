@@ -14,10 +14,12 @@ namespace EBUS_NS
 class task_worker
 {
 public:
+    bool   live() const;
     bool   add_task(task_base::ptr task);
     size_t size() { return m_tasks.size(); }
     void   operator()();
 
+    // method called from main thread
     void shutdown();
 
 protected:
