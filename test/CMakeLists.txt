@@ -46,4 +46,9 @@ add_executable(test_task_oneshot test_task_oneshot.cc util.cc)
 target_link_libraries(test_task_oneshot PRIVATE Catch2::Catch2WithMain ebus)
 catch_discover_tests(test_task_oneshot)
 
+add_executable(test_task_rescheduable test_task_reschedule.cc util.cc)
+target_link_libraries(test_task_rescheduable PRIVATE Catch2::Catch2WithMain
+  ebus)
+catch_discover_tests(test_task_rescheduable)
+
 #then I can simply run `ctest --test-dir build/test` to run the tests
