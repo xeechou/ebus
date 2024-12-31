@@ -62,7 +62,7 @@ test_oneshot()
         for (unsigned i = 0; i < 10; i++)
         {
             task_base::ptr oneshot(new oneshot_task(i));
-            task_scheduler_bus::broadcast(&task_scheduler_iface::add_task, oneshot);
+            task_scheduler_iface::add_task(oneshot);
         }
     }
     std::cout << "task scheduler ended" << std::endl;

@@ -40,14 +40,19 @@ struct task_scheduler_iface : public ebus_iface<ebus_type::GLOBAL>
     /// @brief adding a single task
     ///
     /// user is responsible to prepare the task's implementation. The task is
-    /// expected to be scheduled immediately
-    virtual void add_task(task_base::ptr task) = 0;
+    /// expected to be scheduled immediately. Static function is provided here
+    /// for ease of use.
+    static void  add_task(task_base::ptr);
+    virtual void m_add_task(task_base::ptr task) = 0;
 
     /// @brief Adding a reschedule-able task.
     ///
     /// The implementation should wait for rescheduable_task::done() to
-    /// actually adding the task to the system, for the thread safety.
-    virtual rescheduable_task::ptr add_rescheduable_task(task_base::exec_fn&&) = 0;
+    /// actually adding the task to the system, for the thread safety. Static
+    /// function is provided here for ease of use.
+    static rescheduable_task::ptr add_rescheduable_task(const task_base::exec_fn&);
+    virtual rescheduable_task::ptr
+    m_add_rescheduable_task(const task_base::exec_fn&) = 0;
 };
 
 using task_scheduler_bus = ebus<task_scheduler_iface>;
@@ -62,8 +67,8 @@ class default_task_scheduler : public ebus_handler<task_scheduler_iface>
     using handler_t = ebus_handler<task_scheduler_iface>;
 
 public:
-    void                   add_task(task_base::ptr task) override;
-    rescheduable_task::ptr add_rescheduable_task(task_base::exec_fn&&) override;
+    void                   m_add_task(task_base::ptr task) override;
+    rescheduable_task::ptr m_add_rescheduable_task(const task_base::exec_fn&) override;
 
     default_task_scheduler();
     ~default_task_scheduler();

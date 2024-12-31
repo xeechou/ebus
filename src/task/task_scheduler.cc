@@ -76,7 +76,7 @@ simple_task::finish(fini_fn&& fn)
     }
     {
         task_base::ptr first_task(task); //+1
-        task_scheduler_bus::broadcast(&task_scheduler_iface::add_task,
+        task_scheduler_bus::broadcast(&task_scheduler_iface::m_add_task,
                                       std::ref(first_task));
         //-1
     }
@@ -85,22 +85,42 @@ simple_task::finish(fini_fn&& fn)
 void
 simple_task::task_done()
 {
-    // dispatch finish task now.
-    if ((!m_next_task) && m_fini_task)
-    {
-        m_fini_task();
-    }
-    // else, we need to reschedule
-    else if (m_next_task)
+    if (m_next_task)
     {
         task_base::ptr task(m_next_task); //+1
         // now it is a good to schedule the next task if available.  We are
         // safe to pass in rescheduable_task::ptr here since the
         // default_task_scheduler is implementing the task_schedule_bus (which
         // gives us the simple_task).
-        task_scheduler_bus::broadcast(&task_scheduler_iface::add_task, std::ref(task));
+        task_scheduler_bus::broadcast(&task_scheduler_iface::m_add_task, std::ref(task));
         //-1
     }
+    else if (m_fini_task)
+    {
+        m_fini_task();
+    }
+    // else, we need to reschedule
+}
+
+} // namespace EBUS_NS
+
+namespace EBUS_NS
+{
+
+void
+task_scheduler_iface::add_task(task_base::ptr task)
+{
+    task_scheduler_bus::broadcast(&task_scheduler_iface::m_add_task, std::ref(task));
+}
+
+rescheduable_task::ptr
+task_scheduler_iface::add_rescheduable_task(const task_base::exec_fn& fn)
+{
+    rescheduable_task::ptr result;
+    task_scheduler_bus::invoke(result,
+                               &task_scheduler_iface::m_add_rescheduable_task,
+                               std::ref(fn));
+    return result;
 }
 
 } // namespace EBUS_NS
@@ -123,37 +143,45 @@ default_task_scheduler::default_task_scheduler()
 
 default_task_scheduler::~default_task_scheduler()
 {
-    handler_t::disconnect();
+    // exhaust the workers queues.
     for (size_t i = 0; i < m_workers.size(); i++)
     {
         m_workers[i]->shutdown();
+    }
+
+    // now it is good time to disconnect and join all the threads.
+    handler_t::disconnect();
+    for (size_t i = 0; i < m_worker_threads.size(); i++)
+    {
         m_worker_threads[i].join();
     }
 }
 
 void
-default_task_scheduler::add_task(task_base::ptr task)
+default_task_scheduler::m_add_task(task_base::ptr task)
 {
     // find the worker with least amount of work
     task_worker* idle_worker = nullptr;
     for (auto& worker : m_workers)
     {
-        if (!idle_worker || worker->size() < idle_worker->size())
+        // skip if not live.
+        if (!worker->live())
+            continue;
+        if (!idle_worker || (worker->size() < idle_worker->size()))
             idle_worker = worker.get();
     }
-    // In this case we take a
 
     idle_worker->add_task(task);
 }
 
 rescheduable_task::ptr
-default_task_scheduler::add_rescheduable_task(task_base::exec_fn&& fn)
+default_task_scheduler::m_add_rescheduable_task(const task_base::exec_fn& fn)
 {
 
     // this is not easy, because if your task can reschedule, it could be that
     // you are running into raise conditions, I suggest you call task_worker in
     // reschedule or done event.
-    rescheduable_task::ptr new_task(new simple_task(std::move(fn)));
+    rescheduable_task::ptr new_task(new simple_task(fn));
     return new_task;
 }
 
