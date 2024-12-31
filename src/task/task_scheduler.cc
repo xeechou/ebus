@@ -10,7 +10,7 @@ namespace EBUS_NS
 class simple_task : public rescheduable_task
 {
 public:
-    simple_task(task_base::exec_fn&& func, simple_task* prev_task = nullptr);
+    simple_task(const task_base::exec_fn& func, simple_task* prev_task = nullptr);
     virtual ~simple_task();
 
     // intrusive_ptr overrides
@@ -25,15 +25,15 @@ public:
 private:
     size_t m_refcount = 0;
     // next task is used to schedule
-    ptr m_next_task = nullptr;
+    ptr m_next_task{};
     // prev task. Used to trace back to the first added task.
     simple_task* m_prev_task = nullptr;
 };
 
-simple_task::simple_task(task_base::exec_fn&& func, simple_task* prev_task) :
+simple_task::simple_task(const task_base::exec_fn& func, simple_task* prev_task) :
     m_prev_task(prev_task)
 {
-    m_function = std::move(func);
+    m_function = func;
 }
 
 simple_task::~simple_task() {}
