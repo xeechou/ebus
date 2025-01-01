@@ -7,9 +7,22 @@ namespace EBUS_NS
 void
 task_worker::shutdown()
 {
-    m_live = false;
-    // special function to trigger the worker to wake.
-    m_sem.release();
+    m_live.store(false);
+    // time to exhaust the queue, because the worker is no longer in live mode,
+    // it is not possible add_task anymore. We are sure we can exhaust the
+    // queue this time.
+    while (m_tasks.size() > 0)
+    {
+        auto task = m_tasks.pop();
+        if (task)
+        {
+            task->exec();
+            task->task_done();
+        }
+    }
+    // the special code to trick the task_worker thread to quit
+    // waiting. Because it is possible the worker thread was waiting the empty queue
+    m_tasks.push(INTRUSIVE_NS::intrusive_ptr<task_base>{});
 }
 
 void
@@ -17,15 +30,10 @@ task_worker::operator()()
 {
     while (m_live)
     {
-        // coming from add_task() or shutdown()
-        m_sem.acquire();
+        auto task = m_tasks.pop();
 
-        if (!m_tasks.empty())
+        if (task) // if we come from shutdown, the task is empty here.
         {
-            // pop the task out
-            auto task = m_tasks.front();
-            m_tasks.pop_front();
-
             task->exec();
             task->task_done();
         }
@@ -35,9 +43,20 @@ task_worker::operator()()
 bool
 task_worker::add_task(intrusive_ptr<task_base> task)
 {
-    m_tasks.push_back(task);
-    m_sem.release();
+    if (!this->live())
+    {
+        return false;
+    }
+
+    m_tasks.push(task);
     return true;
+}
+
+bool
+task_worker::live() const
+{
+    bool value = m_live.load();
+    return value;
 }
 
 } // namespace EBUS_NS

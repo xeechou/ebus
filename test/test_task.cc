@@ -6,7 +6,7 @@
 #include <iostream>
 #include <thread>
 
-class test_task : public EBUS_NS::task<EBUS_NS::GLOBAL>
+class test_task : public EBUS_NS::task_base
 {
 public:
     test_task(int id) :

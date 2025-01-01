@@ -165,7 +165,8 @@ public:
         return *m_px;
     }
 
-    bool operator!() const { return m_px == 0; }
+    bool     operator!() const { return m_px == 0; }
+    explicit operator bool() const { return m_px != nullptr; }
 
     ///////////////////////////////////////////////////////////////////////////
     // member functions
@@ -179,7 +180,7 @@ public:
     void swap(intrusive_ptr& rhs)
     {
         T* tmp   = m_px;
-        m_px     = rhs.px;
+        m_px     = rhs.m_px;
         rhs.m_px = tmp;
     }
 
