@@ -1,6 +1,7 @@
 #include <ebus/task_scheduler.hh>
 #include <ebus/task_worker.hh>
 
+#include <atomic>
 #include <algorithm>
 #include <memory>
 #include <thread>
@@ -23,7 +24,7 @@ public:
     virtual void task_done() override;
 
 private:
-    size_t m_refcount = 0;
+    std::atomic_size_t m_refcount = 0;
     // next task is used to schedule
     ptr m_next_task{};
     // prev task. Used to trace back to the first added task.
@@ -41,13 +42,13 @@ simple_task::~simple_task() {}
 void
 simple_task::add_ref()
 {
-    ++m_refcount;
+    m_refcount.fetch_add(1);
 }
 
 void
 simple_task::release()
 {
-    if (--m_refcount <= 0)
+    if (m_refcount.fetch_sub(1) <= 0)
         delete this;
 }
 
