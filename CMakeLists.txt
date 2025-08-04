@@ -33,7 +33,7 @@ target_include_directories(ebus
   INTERFACE
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>"
   "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
-  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+  PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src;${CMAKE_CURRENT_LIST_DIR}/include")
 
 target_compile_definitions(ebus PUBLIC
   EBUS_NS=${EBUS_NAMESPACE}
