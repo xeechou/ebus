@@ -30,7 +30,9 @@ add_library(ebus
 )
 
 target_include_directories(ebus
-  PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include"
+  INTERFACE
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>"
+  "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
   PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 target_compile_definitions(ebus PUBLIC
