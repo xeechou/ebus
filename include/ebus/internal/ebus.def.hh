@@ -20,6 +20,10 @@ concept has_function = requires(T t, function_t&& func, args_t&&... args) {
     { t.func(args...) };
 };
 
+#if defined(_MSC_VER)
+typedef long long ssize_t;
+#endif
+
 namespace EBUS_NS
 {
 
