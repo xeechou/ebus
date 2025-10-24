@@ -1,8 +1,6 @@
 #pragma once
 #include "export.hh"
 
-#include <mutex>
-
 namespace EBUS_NS
 {
 

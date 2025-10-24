@@ -14,6 +14,7 @@
 #include <type_traits>
 #include <typeinfo>
 #include <unordered_map>
+#include <mutex>
 
 // here we define a concept that type T need to has a function
 template <typename T, typename function_t, typename... args_t>
@@ -121,6 +122,8 @@ private:
         std::unordered_map<size_t, ebus_handler*>  m_id_handlers;
         std::unordered_map<size_t, INTRUSIVE_NS::intrusive_list> m_group_handlers;
         using group_itr = std::unordered_map<size_t, INTRUSIVE_NS::intrusive_list>::iterator;
+
+        std::mutex m_lock;
     };
     friend class singleton<ctx>;
 
