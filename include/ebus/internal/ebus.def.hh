@@ -8,6 +8,7 @@
 #    define INTRUSIVE_NS EBUS_NS
 #endif
 #include "../memory/intrusive_list.hh"
+#include "../singleton.hh"
 
 #include <cstddef>
 #include <type_traits>
@@ -121,13 +122,9 @@ private:
         std::unordered_map<size_t, INTRUSIVE_NS::intrusive_list> m_group_handlers;
         using group_itr = std::unordered_map<size_t, INTRUSIVE_NS::intrusive_list>::iterator;
     };
+    friend class singleton<ctx>;
 
-    static ctx& get_context()
-    {
-        // I am using static variable here for simple implementation.
-        static ctx s_ctx;
-        return s_ctx;
-    }
+    static ctx& get_context() { return singleton<ctx>::get_instance(); }
 
     // hash_id only available for one_to_one ebus_types
     template <bool enable = interface::type == ebus_type::GLOBAL>
