@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <atomic>
+#include <mutex>
 
 namespace EBUS_NS
 {

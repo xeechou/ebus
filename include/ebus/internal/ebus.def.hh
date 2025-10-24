@@ -8,17 +8,23 @@
 #    define INTRUSIVE_NS EBUS_NS
 #endif
 #include "../memory/intrusive_list.hh"
+#include "../singleton.hh"
 
 #include <cstddef>
 #include <type_traits>
 #include <typeinfo>
 #include <unordered_map>
+#include <mutex>
 
 // here we define a concept that type T need to has a function
 template <typename T, typename function_t, typename... args_t>
 concept has_function = requires(T t, function_t&& func, args_t&&... args) {
     { t.func(args...) };
 };
+
+#if defined(_MSC_VER)
+typedef long long ssize_t;
+#endif
 
 namespace EBUS_NS
 {
@@ -116,14 +122,12 @@ private:
         std::unordered_map<size_t, ebus_handler*>  m_id_handlers;
         std::unordered_map<size_t, INTRUSIVE_NS::intrusive_list> m_group_handlers;
         using group_itr = std::unordered_map<size_t, INTRUSIVE_NS::intrusive_list>::iterator;
-    };
 
-    static ctx& get_context()
-    {
-        // I am using static variable here for simple implementation.
-        static ctx s_ctx;
-        return s_ctx;
-    }
+        std::mutex m_lock;
+    };
+    friend class singleton<ctx>;
+
+    static ctx& get_context() { return singleton<ctx>::get_instance(); }
 
     // hash_id only available for one_to_one ebus_types
     template <bool enable = interface::type == ebus_type::GLOBAL>

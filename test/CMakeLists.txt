@@ -51,4 +51,14 @@ target_link_libraries(test_task_rescheduable PRIVATE Catch2::Catch2WithMain
   ebus)
 catch_discover_tests(test_task_rescheduable)
 
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS 1)
+
+add_library(export_lib SHARED export_lib.cc)
+target_link_libraries(export_lib PUBLIC ebus)
+target_compile_definitions(export_lib PRIVATE USE_DLL)
+
+add_executable(test_export test_export.cc)
+target_link_libraries(test_export PRIVATE Catch2::Catch2WithMain export_lib)
+catch_discover_tests(test_export)
+
 #then I can simply run `ctest --test-dir build/test` to run the tests

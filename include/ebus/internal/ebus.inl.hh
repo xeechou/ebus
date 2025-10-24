@@ -24,6 +24,8 @@ ebus_handler<interface>::connect()
     size_t id  = hash_id();
     ctx&   ctx = get_context();
 
+    std::scoped_lock<std::mutex> lock(ctx.m_lock);
+
     ctx.m_handlers.push_back(m_node);
 }
 
@@ -38,9 +40,12 @@ ebus_handler<interface>::connect(size_t id)
                       interface::type == ebus_type::GROUP,
                   "id connect(id) are reserved for ONE2ONE or GROUP ebus handlers");
 
+    auto&                        ctx = get_context();
+    std::scoped_lock<std::mutex> lock(ctx.m_lock);
+
     if (interface::type == ebus_type::ONE2ONE)
     {
-        auto& id_handlers = get_context().m_id_handlers;
+        auto& id_handlers = ctx.m_id_handlers;
         if (id_handlers.find(id) != id_handlers.end())
             return false;
 
@@ -49,7 +54,7 @@ ebus_handler<interface>::connect(size_t id)
     }
     else // group case
     {
-        get_context().m_group_handlers[id].push_back(m_node);
+        ctx.m_group_handlers[id].push_back(m_node);
     }
 
     return true;
@@ -59,14 +64,16 @@ template <EBUS_IFACE interface>
 bool
 ebus_handler<interface>::disconnect()
 {
+    auto& ctx = get_context();
     if (is_one2one())
     {
-        auto& id_handlers = get_context().m_id_handlers;
+        auto& id_handlers = ctx.m_id_handlers;
         if (id_handlers.find(m_id) == id_handlers.end())
             return false;
         if (id_handlers.at(m_id) != this)
             return false;
 
+        std::scoped_lock<std::mutex> lock(ctx.m_lock);
         id_handlers.erase(m_id);
         m_id = -1;
     }
