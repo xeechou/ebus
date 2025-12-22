@@ -1,13 +1,13 @@
 #include "ebus/ebus.hh"
 
 #if defined(USE_DLL)
-#    define EXP_API ARCH_EXPORT
-#    define EXP_API_TEMPLATE_CLASS(...) ARCH_TEMPLATE_EXPORT(class, __VA_ARGS__)
-#    define EXP_API_TEMPLATE_STRUCT(...) ARCH_TEMPLATE_EXPORT(struct, __VA_ARGS__)
+#    define EXP_API EBUS_EXPORT
+#    define EXP_API_TEMPLATE_CLASS(...) EBUS_TEMPLATE_EXPORT(class, __VA_ARGS__)
+#    define EXP_API_TEMPLATE_STRUCT(...) EBUS_TEMPLATE_EXPORT(struct, __VA_ARGS__)
 #else
-#    define EXP_API ARCH_IMPORT
-#    define EXP_API_TEMPLATE_CLASS(...) ARCH_TEMPLATE_IMPORT(class, __VA_ARGS__)
-#    define EXP_API_TEMPLATE_STRUCT(...) ARCH_TEMPLATE_IMPORT(struct, __VA_ARGS__)
+#    define EXP_API EBUS_IMPORT
+#    define EXP_API_TEMPLATE_CLASS(...) EBUS_TEMPLATE_IMPORT(class, __VA_ARGS__)
+#    define EXP_API_TEMPLATE_STRUCT(...) EBUS_TEMPLATE_IMPORT(struct, __VA_ARGS__)
 #endif
 
 #include <iostream>

@@ -22,7 +22,7 @@
 
 // use this in cpp file
 #define EBUS_HANDLER_DEFINE_CLASS(IFACE) \
-    ARCH_TEMPLATE_DEFINE(class, EBUS_NS::singleton<EBUS_NS::ebus_handler<IFACE>::ctx>)
+    EBUS_TEMPLATE_DEFINE(class, EBUS_NS::singleton<EBUS_NS::ebus_handler<IFACE>::ctx>)
 
 #define EBUS_HANDLER_DEFINE_STRUCT(IFACE) \
-    ARCH_TEMPLATE_DEFINE(struct, EBUS_NS::singleton<EBUS_NS::ebus_handler<IFACE>::ctx>)
+    EBUS_TEMPLATE_DEFINE(struct, EBUS_NS::singleton<EBUS_NS::ebus_handler<IFACE>::ctx>)
