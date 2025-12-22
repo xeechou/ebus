@@ -3,6 +3,7 @@
 #include "constructor.hh"
 
 #include <vector>
+#include <mutex>
 
 namespace EBUS_NS
 {
@@ -19,17 +20,24 @@ public:
         return s_instance;
     }
 
-    void add_hook(hook_t hook) { m_hooks.push_back(hook); }
+    void add_hook(hook_t hook)
+    {
+        std::scoped_lock<std::mutex> lock(m_lock);
+        m_hooks.push_back(hook);
+    }
 
     void run_hooks()
     {
+        std::scoped_lock<std::mutex> lock(m_lock);
         for (auto hook : m_hooks)
         {
             hook();
         }
+        m_hooks.clear();
     }
 
 private:
+    std::mutex          m_lock;
     std::vector<hook_t> m_hooks;
 };
 
