@@ -1,0 +1,68 @@
+name: cpp-ci-build
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # immediately cancel all other jobs if one fails. Don't waste quotas, windows CI runs really long
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        c_compiler: [gcc, cl, clang]
+        include:
+          - os: windows-latest
+          - os: ubuntu-latest
+          - os: macos-latest
+        exclude:
+          - os: windows-latest
+            c_compiler: gcc
+          - os: windows-latest
+            c_compiler: clang
+          - os: ubuntu-latest
+            c_compiler: cl
+          - os: ubuntu-latest
+            c_compiler: clang
+          - os: macos-latest
+            c_compiler:  'gcc'
+          - os: macos-latest
+            c_compiler:  'cl'
+
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: true
+
+      # this service seemed to be broken
+      - name: Get CMake
+        uses: lukka/get-cmake@v3.28.0
+
+
+      - name: Linux Platform tools
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt update;
+          sudo apt install -y g++ gcc clang pkg-config make
+          sudo apt install -y libtool libltdl-dev ninja-build
+
+      - name: Configure project (Win32)
+        if: matrix.os == 'windows-latest'
+        run: cmake -S${{github.workspace}} -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Configure project (Unix)
+        if: matrix.os == 'ubuntu-latest' || matrix.os =='macos-latest'
+        run: cmake -S${{github.workspace}} -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release -G Ninja
+
+      - name: Build Project
+        run: cmake --build ${{github.workspace}}/build --config Release
+
+      - name: Test with ctest
+        run: |
+          cd ${{ github.workspace }}/build/test
+          ctest -C Release --output-on-failure -V
