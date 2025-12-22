@@ -61,4 +61,9 @@ add_executable(test_export test_export.cc)
 target_link_libraries(test_export PRIVATE Catch2::Catch2WithMain export_lib)
 catch_discover_tests(test_export)
 
+#### testing hooks
+add_executable(test_hooks test_hooks.cc)
+target_link_libraries(test_hooks PRIVATE Catch2::Catch2WithMain ebus)
+catch_discover_tests(test_hooks)
+
 #then I can simply run `ctest --test-dir build/test` to run the tests
