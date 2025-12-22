@@ -1,0 +1,56 @@
+name: cpp-ci-build
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # immediately cancel all other jobs if one fails. Don't waste quotas, windows CI runs really long
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        c_compiler: [gcc, cl, clang]
+        include:
+          - os: windows-latest
+          - os: ubuntu-latest
+          # - os: macos-latest
+        exclude:
+          - os: windows-latest
+            c_compiler: gcc
+          - os: windows-latest
+            c_compiler: clang
+          - os: ubuntu-latest
+            c_compiler: cl
+
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: true
+
+      # this service seemed to be broken
+      - name: Get CMake
+        uses: lukka/get-cmake@v3.28.0
+
+
+      - name: Linux Platform tools
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt update;
+          sudo apt install -y g++ gcc clang pkg-config make
+          sudo apt install -y libtool libltdl-dev ninja-build
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build
+
+      - name: Build Project
+        run: cmake --build ${{github.workspace}}/build --config Release
+
+      - name: Test with ctest
+        run: |
+          cd ${{ github.workspace }}/build/test
