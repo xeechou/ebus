@@ -17,7 +17,7 @@ jobs:
         include:
           - os: windows-latest
           - os: ubuntu-latest
-          # - os: macos-latest
+          - os: macos-latest
         exclude:
           - os: windows-latest
             c_compiler: gcc
@@ -27,6 +27,10 @@ jobs:
             c_compiler: cl
           - os: ubuntu-latest
             c_compiler: clang
+          - os: macos-latest
+            c_compiler:  'gcc'
+          - os: macos-latest
+            c_compiler:  'cl'
 
     steps:
       - name: Check out branch
@@ -51,14 +55,14 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: cmake -S${{github.workspace}} -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release
 
-      - name: Configure project (Ubuntu)
-        if: matrix.os == 'ubuntu-latest'
+      - name: Configure project (Unix)
+        if: matrix.os == 'ubuntu-latest' || matrix.os =='macos-latest'
         run: cmake -S${{github.workspace}} -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release -G Ninja
 
       - name: Build Project
-        run: cmake -B ${{github.workspace}}/build
+        run: cmake --build ${{github.workspace}}/build --config Release
 
       - name: Test with ctest
         run: |
           cd ${{ github.workspace }}/build/test
-          ctest -C Release
+          ctest -C Release --output-on-failure -V
