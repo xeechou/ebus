@@ -29,7 +29,7 @@ public:
     void run_hooks()
     {
         std::scoped_lock<std::mutex> lock(m_lock);
-        for (auto hook : m_hooks)
+        for (const auto& hook : m_hooks)
         {
             hook();
         }
