@@ -25,6 +25,8 @@ jobs:
             c_compiler: clang
           - os: ubuntu-latest
             c_compiler: cl
+          - os: ubuntu-latest
+            c_compiler: clang
 
     steps:
       - name: Check out branch
@@ -45,12 +47,18 @@ jobs:
           sudo apt install -y g++ gcc clang pkg-config make
           sudo apt install -y libtool libltdl-dev ninja-build
 
-      - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build
+      - name: Configure project (Win32)
+        if: matrix.os == 'windows-latest'
+        run: cmake --build ${{github.workspace}}/build --config Release
+
+      - name: Configure project (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: cmake --build ${{github.workspace}}/build --config Release -G Ninja
 
       - name: Build Project
-        run: cmake --build ${{github.workspace}}/build --config Release
+        run: cmake -B ${{github.workspace}}/build
 
       - name: Test with ctest
         run: |
           cd ${{ github.workspace }}/build/test
+          ctest -C Release
