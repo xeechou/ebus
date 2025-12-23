@@ -1,30 +1,26 @@
-#include "ebus/hooks.hh"
+#include "hook_lib.hh"
 
 #include <catch2/catch_test_macros.hpp>
 #include <vector>
 
 namespace EBUS_NS
 {
-static int a = 0;
-
-extern template class hook_registry<std::vector<int>>;
-
-template class hook_registry<std::vector<int>>;
-
-EBUS_HOOK_REGISTRY_FUNCTION(std::vector<int>)
+EBUS_HOOK_REGISTRY_FUNCTION(test_hook_registry)
 {
-    a += 100;
+    test_hook_registry::instance().add_data(101);
 }
 
-EBUS_HOOK_REGISTRY_FUNCTION(std::vector<int>)
-{
-    a += 100;
-}
-
+// defined in hook_lib2
+extern void set_global_value(int i);
 } // namespace EBUS_NS
 
 TEST_CASE("test hooks [0]")
 {
-    EBUS_NS::hook_registry<std::vector<int>>::instance().run_hooks();
-    REQUIRE(EBUS_NS::a == 200);
+    // NOTE: hook_lib1 is linked because test_hook_registry is indeed defined in it.
+
+    // NOTE: set_global_value ensure hook_lib2 does get linked here, otherwise
+    // linker may decide that hook_lib2 not need to be linked at all.
+    EBUS_NS::set_global_value(202);
+    EBUS_NS::test_hook_registry::instance().run_hooks();
+    REQUIRE(EBUS_NS::test_hook_registry::instance().curr_data() == (202 +203));
 }

@@ -1,23 +1,49 @@
 #pragma once
 
 #include "constructor.hh"
+#include "singleton.hh"
 
 #include <vector>
 #include <mutex>
+#include <type_traits>
 
 namespace EBUS_NS
 {
 
-template <class TOKEN>
+/**
+ * @brief hook_registry
+ *
+ * Thread-safe registry for managing initialization hooks using CRTP pattern.
+ *
+ * The hook_registry class provides a singleton-based mechanism for registering
+ * and executing hooks (callback functions) at specific points during program
+ * initialization or lifecycle.  It uses the Curiously Recurring Template
+ * Pattern (CRTP) to allow type-safe specialization while maintaining a single
+ * instance per subclass.
+ *
+ * Usage Example:
+ * @code
+ * struct MyHookRegistry : public hook_registry<MyHookRegistry> {};
+ *
+ * EBUS_HOOK_REGISTRY_FUNCTION(MyHookRegistry) {
+ *     // Hook code executed during initialization
+ * }
+ * @endcode
+ *
+ */
+template <class SUBCLASS>
 class hook_registry
 {
 public:
-    using hook_t = void (*)();
+    using hook_t     = void (*)();
+    using subclass_t = SUBCLASS;
 
-    static hook_registry<TOKEN>& instance()
+    static SUBCLASS& instance()
     {
-        static hook_registry<TOKEN> s_instance = {};
-        return s_instance;
+
+        static_assert(std::is_base_of_v<hook_registry<SUBCLASS>, SUBCLASS>,
+                      "invalid hook_registry");
+        return singleton<subclass_t>::get_instance();
     }
 
     void add_hook(hook_t hook)
@@ -53,9 +79,9 @@ private:
 #define EBUS_HOOK_REGISTRY_FUNCTION(TOKEN) EBUS_HOOK_REGISTRY_DEF(TOKEN, __COUNTER__)
 
 #define EBUS_HOOK_REGISTRY_DECLARE(EBUSAPI, IFACE) \
-    EBUSAPI##_API_TEMPLATE_CLASS(hook_registry<IFACE>)
+    EBUSAPI##_API_TEMPLATE_CLASS(singleton<hook_registry<IFACE>::subclass_t>)
 
 #define EBUS_HOOK_REGISTRY_DEFINE(IFACE) \
-    EBUS_TEMPLATE_DEFINE(class, hook_registry<IFACE>)
+    EBUS_TEMPLATE_DEFINE(class, singleton<hook_registry<IFACE>::subclass_t>)
 
 } // namespace EBUS_NS

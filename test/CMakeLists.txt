@@ -63,7 +63,14 @@ catch_discover_tests(test_export)
 
 #### testing hooks
 add_executable(test_hooks test_hooks.cc)
-target_link_libraries(test_hooks PRIVATE Catch2::Catch2WithMain ebus)
+add_library(hook_lib1 SHARED hook_lib1.cc)
+target_compile_definitions(hook_lib1
+  PRIVATE TEST_EXPORT)
+target_link_libraries(hook_lib1 PUBLIC ebus)
+add_library(hook_lib2 SHARED hook_lib2.cc)
+target_link_libraries(hook_lib2 PUBLIC hook_lib1)
+
+target_link_libraries(test_hooks PRIVATE Catch2::Catch2WithMain	hook_lib2)
 catch_discover_tests(test_hooks)
 
 #then I can simply run `ctest --test-dir build/test` to run the tests
