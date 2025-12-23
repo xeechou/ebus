@@ -15,5 +15,6 @@ private:
     std::atomic_int data = 0;
 };
 EBUS_HOOK_REGISTRY_DECLARE(TEST, test_hook_registry);
+TEST_API int global_value;
 
 } // namespace EBUS_NS
