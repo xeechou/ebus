@@ -4,19 +4,45 @@
 
 #include <vector>
 #include <mutex>
+#include <type_traits>
 
 namespace EBUS_NS
 {
 
-template <class TOKEN>
+/**
+ * @brief hook_registry
+ *
+ * Thread-safe registry for managing initialization hooks using CRTP pattern.
+ *
+ * The hook_registry class provides a singleton-based mechanism for registering
+ * and executing hooks (callback functions) at specific points during program
+ * initialization or lifecycle.  It uses the Curiously Recurring Template
+ * Pattern (CRTP) to allow type-safe specialization while maintaining a single
+ * instance per subclass.
+ *
+ * Usage Example:
+ * @code
+ * struct MyHookRegistry : public hook_registry<MyHookRegistry> {};
+ *
+ * EBUS_HOOK_REGISTRY_FUNCTION(MyHookRegistry) {
+ *     // Hook code executed during initialization
+ * }
+ * @endcode
+ *
+ */
+template <class SUBCLASS>
 class hook_registry
 {
 public:
     using hook_t = void (*)();
 
-    static hook_registry<TOKEN>& instance()
+    static SUBCLASS& instance()
     {
-        static hook_registry<TOKEN> s_instance = {};
+
+        static_assert(std::is_base_of_v<hook_registry<SUBCLASS>, SUBCLASS>,
+                      "invalid hook_registry");
+
+        static SUBCLASS s_instance = {};
         return s_instance;
     }
 

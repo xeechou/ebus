@@ -7,24 +7,22 @@ namespace EBUS_NS
 {
 static int a = 0;
 
-extern template class hook_registry<std::vector<int>>;
-
-template class hook_registry<std::vector<int>>;
-
-EBUS_HOOK_REGISTRY_FUNCTION(std::vector<int>)
+class test_hook_registry : public hook_registry<test_hook_registry>
 {
-    a += 100;
-}
+};
 
-EBUS_HOOK_REGISTRY_FUNCTION(std::vector<int>)
-{
-    a += 100;
-}
+// extern template class hook_registry<std::vector<int>>;
+
+// template class hook_registry<std::vector<int>>;
+
+EBUS_HOOK_REGISTRY_FUNCTION(test_hook_registry) { a += 100; }
+
+EBUS_HOOK_REGISTRY_FUNCTION(test_hook_registry) { a += 100; }
 
 } // namespace EBUS_NS
 
 TEST_CASE("test hooks [0]")
 {
-    EBUS_NS::hook_registry<std::vector<int>>::instance().run_hooks();
+    EBUS_NS::test_hook_registry::instance().run_hooks();
     REQUIRE(EBUS_NS::a == 200);
 }
