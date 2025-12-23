@@ -1,6 +1,7 @@
 #pragma once
 
 #include "constructor.hh"
+#include "singleton.hh"
 
 #include <vector>
 #include <mutex>
@@ -34,16 +35,15 @@ template <class SUBCLASS>
 class hook_registry
 {
 public:
-    using hook_t = void (*)();
+    using hook_t     = void (*)();
+    using subclass_t = SUBCLASS;
 
     static SUBCLASS& instance()
     {
 
         static_assert(std::is_base_of_v<hook_registry<SUBCLASS>, SUBCLASS>,
                       "invalid hook_registry");
-
-        static SUBCLASS s_instance = {};
-        return s_instance;
+        return singleton<subclass_t>::get_instance();
     }
 
     void add_hook(hook_t hook)
@@ -79,9 +79,9 @@ private:
 #define EBUS_HOOK_REGISTRY_FUNCTION(TOKEN) EBUS_HOOK_REGISTRY_DEF(TOKEN, __COUNTER__)
 
 #define EBUS_HOOK_REGISTRY_DECLARE(EBUSAPI, IFACE) \
-    EBUSAPI##_API_TEMPLATE_CLASS(hook_registry<IFACE>)
+    EBUSAPI##_API_TEMPLATE_CLASS(singleton<hook_registry<IFACE>::subclass_t>)
 
 #define EBUS_HOOK_REGISTRY_DEFINE(IFACE) \
-    EBUS_TEMPLATE_DEFINE(class, hook_registry<IFACE>)
+    EBUS_TEMPLATE_DEFINE(class, singleton<hook_registry<IFACE>::subclass_t>)
 
 } // namespace EBUS_NS
