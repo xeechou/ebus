@@ -129,7 +129,7 @@ private:
     friend class singleton<ctx>;
 
     static ctx& get_context() { return singleton<ctx>::get_instance(); }
-    static void insert_handler_at(intrusive_list&, intrusive_list_node&, const float);
+    static void insert_handler_at(intrusive_list&, ebus_handler&, const float);
 
     // hash_id only available for one_to_one ebus_types
     template <bool enable = interface::type == ebus_type::GLOBAL>

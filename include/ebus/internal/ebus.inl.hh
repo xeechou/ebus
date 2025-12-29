@@ -13,9 +13,9 @@ namespace EBUS_NS
 ///////////////////////////////////////////////////////////////////////////////
 template <EBUS_IFACE interface>
 void
-ebus_handler<interface>::insert_handler_at(intrusive_list&      head,
-                                           intrusive_list_node& this_node,
-                                           const float          priority)
+ebus_handler<interface>::insert_handler_at(intrusive_list& head,
+                                           ebus_handler&   this_handler,
+                                           const float     priority)
 {
     // insert the handler based on its priority,
     using handler_t = ebus_handler<interface>;
@@ -29,14 +29,16 @@ ebus_handler<interface>::insert_handler_at(intrusive_list&      head,
         handler_t& handler = *pos;
         if (priority > handler.m_priority)
         {
-            handler.m_node.insert_before(this_node);
+            handler.m_node.insert_before(this_handler.m_node);
             inserted = true;
+            break;
         }
     }
     if (!inserted)
     {
-        head.push_back(this_node);
+        head.push_back(this_handler.m_node);
     }
+    this_handler.m_priority = priority;
 }
 
 /**
@@ -52,7 +54,7 @@ ebus_handler<interface>::connect(float priority)
     ctx&   ctx = get_context();
 
     std::scoped_lock<std::mutex> lock(ctx.m_lock);
-    insert_handler_at(ctx.m_handlers, m_node, priority);
+    insert_handler_at(ctx.m_handlers, *this, priority);
 }
 
 /**
@@ -80,7 +82,7 @@ ebus_handler<interface>::connect(size_t id, float priority)
     }
     else // group case
     {
-        insert_handler_at(ctx.m_group_handlers[id], m_node, priority);
+        insert_handler_at(ctx.m_group_handlers[id], *this, priority);
     }
 
     return true;
