@@ -11,13 +11,42 @@ namespace EBUS_NS
 ///////////////////////////////////////////////////////////////////////////////
 // ebus_handler
 ///////////////////////////////////////////////////////////////////////////////
+template <EBUS_IFACE interface>
+void
+ebus_handler<interface>::insert_handler_at(intrusive_list& head,
+                                           ebus_handler&   this_handler,
+                                           const float     priority)
+{
+    // insert the handler based on its priority,
+    using handler_t = ebus_handler<interface>;
+    intrusive_list_iterable<handler_t> handlers(head, &handler_t::m_node);
+
+    bool inserted = false;
+    for (intrusive_list_iterator<handler_t> pos = handlers.begin(), tmp = pos.next();
+         pos != handlers.end();
+         pos = tmp, tmp = tmp.next())
+    {
+        handler_t& handler = *pos;
+        if (priority > handler.m_priority)
+        {
+            handler.m_node.insert_before(this_handler.m_node);
+            inserted = true;
+            break;
+        }
+    }
+    if (!inserted)
+    {
+        head.push_back(this_handler.m_node);
+    }
+    this_handler.m_priority = priority;
+}
 
 /**
  * connect the bus listeners
  */
 template <EBUS_IFACE interface>
 void
-ebus_handler<interface>::connect()
+ebus_handler<interface>::connect(float priority)
 {
     static_assert(interface::type == ebus_type::GLOBAL,
                   "non-id connect() are reserved for type based ebus handlers");
@@ -25,8 +54,7 @@ ebus_handler<interface>::connect()
     ctx&   ctx = get_context();
 
     std::scoped_lock<std::mutex> lock(ctx.m_lock);
-
-    ctx.m_handlers.push_back(m_node);
+    insert_handler_at(ctx.m_handlers, *this, priority);
 }
 
 /**
@@ -34,7 +62,7 @@ ebus_handler<interface>::connect()
  */
 template <EBUS_IFACE interface>
 bool
-ebus_handler<interface>::connect(size_t id)
+ebus_handler<interface>::connect(size_t id, float priority)
 {
     static_assert(interface::type == ebus_type::ONE2ONE ||
                       interface::type == ebus_type::GROUP,
@@ -54,7 +82,7 @@ ebus_handler<interface>::connect(size_t id)
     }
     else // group case
     {
-        ctx.m_group_handlers[id].push_back(m_node);
+        insert_handler_at(ctx.m_group_handlers[id], *this, priority);
     }
 
     return true;
