@@ -101,17 +101,18 @@ class ebus_handler : public interface
 
 protected:
     /// connect via handler type. In this case we only allows one_to_one connection
-    void connect();
+    void connect(float priority = 0.0f);
 
     // connect via id. This is additional
-    bool connect(size_t id);
+    bool connect(size_t id, float priority = 0.0f);
     bool disconnect();
 
     static constexpr bool is_one2one() { return interface::type == ebus_type::ONE2ONE; }
 
 private:
     INTRUSIVE_NS::intrusive_list_node m_node;
-    ssize_t             m_id = -1;
+    ssize_t                           m_id       = -1;
+    float                             m_priority = 0.0f;
 
     /**
      * the context to hold all the handlers.
@@ -128,6 +129,7 @@ private:
     friend class singleton<ctx>;
 
     static ctx& get_context() { return singleton<ctx>::get_instance(); }
+    static void insert_handler_at(intrusive_list&, intrusive_list_node&, const float);
 
     // hash_id only available for one_to_one ebus_types
     template <bool enable = interface::type == ebus_type::GLOBAL>
