@@ -70,10 +70,11 @@ test_typed()
 
     sample_class        value(10);
     sample_class        value1(11);
+    sample_class        value2(9);
     sample_ebus_handler handler(value.value());
-    sample_ebus_handler handler1(value1.value()); // handler1 takes precedence
-                                                  // even it's inserted later.
-    int result = 0;
+    sample_ebus_handler handler1(value1.value());
+    sample_ebus_handler handler2(value2.value());
+    int                 result = 0;
 
     sample_bus::broadcast(&sample_interface::event0, std::ref(value));
     sample_bus::invoke(result, &sample_interface::request0, std::ref(value));
