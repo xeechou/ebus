@@ -46,7 +46,7 @@ ebus_handler<interface>::insert_handler_at(intrusive_list& head,
  */
 template <EBUS_IFACE interface>
 void
-ebus_handler<interface>::connect(float priority)
+ebus_handler<interface>::connect(priority_t p)
 {
     static_assert(interface::type == ebus_type::GLOBAL,
                   "non-id connect() are reserved for type based ebus handlers");
@@ -54,7 +54,7 @@ ebus_handler<interface>::connect(float priority)
     ctx&   ctx = get_context();
 
     std::scoped_lock<std::mutex> lock(ctx.m_lock);
-    insert_handler_at(ctx.m_handlers, *this, priority);
+    insert_handler_at(ctx.m_handlers, *this, p.val());
 }
 
 /**
@@ -62,7 +62,7 @@ ebus_handler<interface>::connect(float priority)
  */
 template <EBUS_IFACE interface>
 bool
-ebus_handler<interface>::connect(size_t id, float priority)
+ebus_handler<interface>::connect(size_t id, priority_t p)
 {
     static_assert(interface::type == ebus_type::ONE2ONE ||
                       interface::type == ebus_type::GROUP,
@@ -82,7 +82,7 @@ ebus_handler<interface>::connect(size_t id, float priority)
     }
     else // group case
     {
-        insert_handler_at(ctx.m_group_handlers[id], *this, priority);
+        insert_handler_at(ctx.m_group_handlers[id], *this, p.val());
     }
 
     return true;
