@@ -46,7 +46,7 @@ ebus_handler<interface>::insert_handler_at(intrusive_list& head,
  */
 template <EBUS_IFACE interface>
 void
-ebus_handler<interface>::connect(priority_t p)
+ebus_handler<interface>::connect(ebus_priority_t p)
 {
     static_assert(interface::type == ebus_type::GLOBAL,
                   "non-id connect() are reserved for type based ebus handlers");
@@ -62,7 +62,7 @@ ebus_handler<interface>::connect(priority_t p)
  */
 template <EBUS_IFACE interface>
 bool
-ebus_handler<interface>::connect(size_t id, priority_t p)
+ebus_handler<interface>::connect(size_t id, ebus_priority_t p)
 {
     static_assert(interface::type == ebus_type::ONE2ONE ||
                       interface::type == ebus_type::GROUP,
