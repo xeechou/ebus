@@ -94,29 +94,41 @@ private:
     handler_t& find_first_handler();
 };
 
+struct ebus_priority_t
+{
+    const float m_priority;
+
+    constexpr ebus_priority_t() :
+        m_priority(0.0f)
+    {
+    }
+    constexpr explicit ebus_priority_t(float p) : // explicit so no implicit conversion
+        m_priority(p)
+    {
+    }
+    constexpr inline float val() const { return m_priority; }
+
+    constexpr ebus_priority_t operator+(float another) const
+    {
+        return ebus_priority_t(m_priority + another);
+    }
+    constexpr ebus_priority_t operator-(float another) const
+    {
+        return ebus_priority_t(m_priority - another);
+    }
+};
+
 template <EBUS_IFACE interface>
 class ebus_handler : public interface
 {
     friend class ebus<interface>;
 
-public:
-    struct priority_t
-    {
-        float m_priority = 0.0f;
-        priority_t() {}
-        explicit priority_t(float p) : // explicit so no implicit conversion
-            m_priority(p)
-        {
-        }
-        inline float val() const { return m_priority; }
-    };
-
 protected:
     /// connect via handler type. In this case we only allows one_to_one connection
-    void connect(priority_t p = {});
+    void connect(ebus_priority_t p = {});
 
     // connect via id. This is additional
-    bool connect(size_t id, priority_t p = {});
+    bool connect(size_t id, ebus_priority_t p = {});
     bool disconnect();
 
     static constexpr bool is_one2one() { return interface::type == ebus_type::ONE2ONE; }

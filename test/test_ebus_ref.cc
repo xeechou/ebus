@@ -36,7 +36,7 @@ public:
         m_value(value)
     {
         std::cout << "typed bus connected" << std::endl;
-        connect(priority_t((float)m_value));
+        connect(EBUS_NS::ebus_priority_t((float)m_value));
     }
     ~sample_ebus_handler()
     {
