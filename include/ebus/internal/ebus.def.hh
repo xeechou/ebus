@@ -109,6 +109,9 @@ protected:
 
     static constexpr bool is_one2one() { return interface::type == ebus_type::ONE2ONE; }
 
+public:
+    ~ebus_handler() { disconnect(); }
+
 private:
     INTRUSIVE_NS::intrusive_list_node m_node;
     ssize_t             m_id = -1;
