@@ -12,3 +12,14 @@ TEST_CASE("test ebus export dll [EBUS]")
 
     REQUIRE(value == 101);
 }
+
+TEST_CASE("test type id")
+{
+    REQUIRE(typeid(sample_interface) == get_type_info_sample_interface());
+}
+
+TEST_CASE("test type index")
+{
+    REQUIRE(std::type_index(typeid(sample_interface)) ==
+            get_type_index_sample_interface());
+}
