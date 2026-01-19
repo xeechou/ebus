@@ -76,7 +76,8 @@ private:
     }                                                         \
     static void EBUS_CONCAT(_hooks_registry_, NAME)(void*)
 
-#define EBUS_HOOK_REGISTRY_FUNCTION(TOKEN) EBUS_HOOK_REGISTRY_DEF(TOKEN, __COUNTER__)
+#define EBUS_HOOK_REGISTRY_FUNCTION(REG, TAG) \
+    EBUS_HOOK_REGISTRY_DEF(REG, EBUS_CONCAT(TAG, __COUNTER__))
 
 #define EBUS_HOOK_REGISTRY_DECLARE(EBUSAPI, IFACE) \
     EBUSAPI##_API_TEMPLATE_CLASS(singleton<hook_registry<IFACE>::subclass_t>)
