@@ -11,6 +11,7 @@
 #endif
 
 #include <iostream>
+#include <typeindex>
 
 class sample_interface : public EBUS_NS::ebus_iface<EBUS_NS::GLOBAL>
 {
@@ -44,3 +45,6 @@ public:
 EXP_API void setup_handler_and_set_int(int value);
 // without the extern template below, the static interface should be
 EBUS_HANDLER_DECLARE_CLASS(EXP, sample_interface);
+
+EXP_API std::type_index get_type_index_sample_interface();
+EXP_API std::type_info const& get_type_info_sample_interface();
