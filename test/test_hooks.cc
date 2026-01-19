@@ -5,7 +5,7 @@
 
 namespace EBUS_NS
 {
-EBUS_HOOK_REGISTRY_FUNCTION(test_hook_registry)
+EBUS_HOOK_REGISTRY_FUNCTION(test_hook_registry, test_hook)
 {
     test_hook_registry::instance().add_data(101);
 }
