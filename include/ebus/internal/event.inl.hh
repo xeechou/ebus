@@ -38,7 +38,7 @@ event_handler<args...>::event_handler(event_handler&& other) :
     if (!other.idle())
     {
         other.m_node.insert_before(m_node);
-        other.m_node.earse();
+        other.m_node.erase();
     }
 }
 
@@ -61,7 +61,7 @@ event_handler<args...>::operator=(event_handler&& rhs)
     if (!rhs.idle())
     {
         rhs.m_node.insert_before(m_node);
-        rhs.m_node.earse();
+        rhs.m_node.erase();
     }
 
     return *this;
@@ -101,7 +101,7 @@ template <typename... args>
 void
 event_handler<args...>::disconnect()
 {
-    m_node.earse();
+    m_node.erase();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -140,7 +140,7 @@ void
 event<args...>::connect(handler& handler)
 {
     std::lock_guard<std::mutex> lock(m_handlers_lock);
-    handler.m_node.earse();
+    handler.m_node.erase();
     m_head.push_back(handler.m_node);
 }
 

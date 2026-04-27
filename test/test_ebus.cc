@@ -178,6 +178,96 @@ test_grouped()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
+// broadcast until
+//////////////////////////////////////////////////////////////////////////////////////
+
+class until_interface : public EBUS_NS::ebus_iface<EBUS_NS::ebus_type::GLOBAL>
+{
+public:
+    virtual EBUS_NS::ebus_result event0(int) = 0;
+    virtual void                 reset()     = 0;
+};
+
+class until_handler : public EBUS_NS::ebus_handler<until_interface>
+{
+public:
+    until_handler(int val) :
+        m_val(val)
+    {
+        connect(EBUS_NS::ebus_priority_t{static_cast<float>(val)});
+    }
+
+    ~until_handler() { disconnect(); }
+
+    bool tested() const { return m_tested; }
+    bool past() const { return m_past; }
+
+    EBUS_NS::ebus_result event0(int test) override
+    {
+        m_tested = true;
+        m_past   = (test == m_val);
+        return m_past ? EBUS_NS::ebus_result::CONSUMED : EBUS_NS::ebus_result::IGNORED;
+    }
+
+    void reset() override
+    {
+        m_tested = false;
+        m_past   = false;
+    }
+
+private:
+    bool      m_past   = false;
+    bool      m_tested = false;
+    const int m_val;
+};
+using until_bus = EBUS_NS::ebus<until_interface>;
+
+TEST_CASE("test ebus broadcast_until [EBUS]")
+{
+    until_handler handler0(100);
+    until_handler handler1(200);
+    until_handler handler2(300);
+
+    REQUIRE_FALSE(handler0.tested());
+    REQUIRE_FALSE(handler1.tested());
+    REQUIRE_FALSE(handler2.tested());
+
+    // 1st test, 300: only 1 tested 1 passed
+    until_bus::broadcast_until(&until_interface::event0, 300);
+    REQUIRE_FALSE(handler0.tested());
+    REQUIRE_FALSE(handler1.tested());
+    REQUIRE(handler2.tested());
+
+    REQUIRE_FALSE(handler0.past());
+    REQUIRE_FALSE(handler1.past());
+    REQUIRE(handler2.past());
+
+    until_bus::broadcast(&until_interface::reset);
+
+    // 2nd test, 200, 2 tested only 1 passed
+    until_bus::broadcast_until(&until_interface::event0, 200);
+    REQUIRE_FALSE(handler0.tested());
+    REQUIRE(handler1.tested());
+    REQUIRE(handler2.tested());
+
+    REQUIRE_FALSE(handler0.past());
+    REQUIRE(handler1.past());
+    REQUIRE_FALSE(handler2.past());
+
+    until_bus::broadcast(&until_interface::reset);
+
+    // 3nd test, 100, 3 tested only 1 passed
+    until_bus::broadcast_until(&until_interface::event0, 100);
+    REQUIRE(handler0.tested());
+    REQUIRE(handler1.tested());
+    REQUIRE(handler2.tested());
+
+    REQUIRE(handler0.past());
+    REQUIRE_FALSE(handler1.past());
+    REQUIRE_FALSE(handler2.past());
+}
+
+//////////////////////////////////////////////////////////////////////////////////////
 // main
 //////////////////////////////////////////////////////////////////////////////////////
 

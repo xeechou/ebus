@@ -107,7 +107,7 @@ ebus_handler<interface>::disconnect()
     }
     else
     {
-        m_node.earse();
+        m_node.erase();
     }
     return true;
 }
@@ -184,6 +184,37 @@ ebus<interface>::broadcast(function_t&& func, args_t&&... args)
                                  &handler,
                                  std::forward<args_t>(args)...);
         functor();
+    }
+}
+
+template <EBUS_IFACE interface>
+template <typename function_t, typename... args_t>
+void
+ebus<interface>::broadcast_until(function_t&& func, args_t&&... args)
+{
+    static_assert(interface::type == ebus_type::GLOBAL,
+                  "broadcast_until() is reserved only for global type ebus");
+    static_assert(
+        std::is_same_v<std::invoke_result_t<function_t, handler_t&, args_t...>,
+                       ebus_result> == true,
+        "broadcast_until() only works with methods has ebus_result as return type");
+
+    typename handler_t::ctx&           ctx = handler_t::get_context();
+    intrusive_list_iterable<handler_t> iterable(ctx.m_handlers, &handler_t::m_node);
+    // safe loop to allow modifying pos node during the loop
+    for (intrusive_list_iterator<handler_t> pos = iterable.begin(), tmp = pos.next();
+         pos != iterable.end();
+         pos = tmp, tmp = tmp.next())
+    {
+        handler_t&  handler = *pos;
+        auto        functor = std::bind(std::forward<function_t>(func),
+                                 &handler,
+                                 std::forward<args_t>(args)...);
+        ebus_result res     = functor();
+        if (res == ebus_result::CONSUMED)
+        {
+            break;
+        }
     }
 }
 
