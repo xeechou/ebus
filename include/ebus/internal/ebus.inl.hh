@@ -3,7 +3,6 @@
 #include "ebus.def.hh"
 
 #include <functional>
-#include <utility>
 
 namespace EBUS_NS
 {
@@ -128,11 +127,7 @@ ebus<interface>::event(size_t id, function_t&& func, args_t&&... args)
     if (ctx.m_id_handlers.find(id) != ctx.m_id_handlers.end())
     {
         handler_t* handler = ctx.m_id_handlers.at(id);
-
-        auto exec = std::bind(std::forward<function_t>(func),
-                              handler,
-                              std::forward<args_t>(args)...);
-        exec();
+        std::invoke(func, *handler, args...);
     }
 }
 
@@ -156,10 +151,7 @@ ebus<interface>::multicast(size_t id, function_t&& func, args_t&&... args)
              pos = tmp, tmp = tmp.next())
         {
             handler_t& handler = *pos;
-            auto       functor = std::bind(std::forward<function_t>(func),
-                                     &handler,
-                                     std::forward<args_t>(args)...);
-            functor();
+            std::invoke(func, handler, args...);
         }
     }
 }
@@ -180,10 +172,7 @@ ebus<interface>::broadcast(function_t&& func, args_t&&... args)
          pos = tmp, tmp = tmp.next())
     {
         handler_t& handler = *pos;
-        auto       functor = std::bind(std::forward<function_t>(func),
-                                 &handler,
-                                 std::forward<args_t>(args)...);
-        functor();
+        std::invoke(func, handler, args...);
     }
 }
 
@@ -207,10 +196,7 @@ ebus<interface>::broadcast_until(function_t&& func, args_t&&... args)
          pos = tmp, tmp = tmp.next())
     {
         handler_t&  handler = *pos;
-        auto        functor = std::bind(std::forward<function_t>(func),
-                                 &handler,
-                                 std::forward<args_t>(args)...);
-        ebus_result res     = functor();
+        ebus_result res     = std::invoke(func, handler, args...);
         if (res == ebus_result::CONSUMED)
         {
             break;
@@ -236,11 +222,7 @@ ebus<interface>::invoke(result_t& result, function_t&& func, args_t&&... args)
          pos = tmp, tmp = tmp.next())
     {
         handler_t& handler = *pos;
-        auto       exec    = std::bind(std::forward<function_t>(func),
-                              &handler,
-                              std::forward<args_t>(args)...);
-
-        result = exec();
+        result = std::invoke(func, handler, args...);
         break;
     }
 }
@@ -258,11 +240,7 @@ ebus<interface>::invoke(result_t& result, size_t id, function_t&& func, args_t&&
     if (ctx.m_id_handlers.find(id) != ctx.m_id_handlers.end())
     {
         handler_t* handler = ctx.m_id_handlers.at(id);
-
-        auto exec = std::bind(std::forward<function_t>(func),
-                              handler,
-                              std::forward<args_t>(args)...);
-        result    = exec();
+        result = std::invoke(func, *handler, args...);
     }
 }
 
@@ -290,10 +268,7 @@ ebus<interface>::invoke(result_t& result, size_t id, function_t&& func, args_t&&
              pos = tmp, tmp = tmp.next())
         {
             handler_t& handler = *pos;
-            auto       exec    = std::bind(std::forward<function_t>(func),
-                                  &handler,
-                                  std::forward<args_t>(args)...);
-            result    = exec();
+            result = std::invoke(func, handler, args...);
             break;
         }
     }
