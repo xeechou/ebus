@@ -36,6 +36,12 @@ enum ebus_type
     GROUP   = 2, // the GROUP ebus will have listeners grouped by id.
 };
 
+enum ebus_result
+{
+    IGNORED,  // Not handled — continue to next handler in the chain.
+    CONSUMED, // Handled — stop propagation.
+};
+
 template <ebus_type iface_type>
 struct ebus_iface
 {
@@ -74,6 +80,10 @@ public:
     // broadcast an event to multi-handlers
     template <typename function_t, typename... args_t>
     static void broadcast(function_t&& func, args_t&&... args);
+
+    // broadcast an event but stop if one handler process it
+    template <typename function_t, typename... args_t>
+    static void broadcast_until(function_t&& func, args_t&&... args);
 
     // invoke non-ided handler function
     template <typename result_t, typename function_t, typename... args_t>
