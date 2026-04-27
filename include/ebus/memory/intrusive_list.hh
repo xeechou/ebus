@@ -37,7 +37,7 @@ public:
         m_next(this) {};
     intrusive_list_node(const intrusive_list_node& another) = delete;
     intrusive_list_node(intrusive_list_node&& another)      = delete;
-    ~intrusive_list_node() { earse(); }
+    ~intrusive_list_node() { erase(); }
 
     bool idle() const { return m_prev == this && m_next == this; }
 
@@ -51,7 +51,7 @@ public:
         nextp->m_prev = &other;
     }
     void insert_before(intrusive_list_node& other) { this->m_prev->insert(other); }
-    void earse()
+    void erase()
     {
         intrusive_list_node *prevp = this->m_prev, *nextp = this->m_next;
 
@@ -180,7 +180,7 @@ public:
     {
         if (!empty())
         {
-            this->m_head.m_next->earse();
+            this->m_head.m_next->erase();
         }
     }
     void push_back(intrusive_list_node& node) { this->m_head.insert_before(node); }
@@ -188,14 +188,14 @@ public:
     {
         if (!empty())
         {
-            this->m_head.m_prev->earse();
+            this->m_head.m_prev->erase();
         }
     }
     void shift_forward(difference_type num = 1)
     {
         intrusive_list_node* dst = at(num);
 
-        this->m_head.earse();
+        this->m_head.erase();
         dst->insert_before(this->m_head);
     }
     void shift_backwards(size_type num = 1)
@@ -206,7 +206,7 @@ public:
     {
         while (!empty())
         {
-            this->m_head.m_next->earse();
+            this->m_head.m_next->erase();
         }
     }
 };

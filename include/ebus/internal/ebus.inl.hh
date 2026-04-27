@@ -107,7 +107,7 @@ ebus_handler<interface>::disconnect()
     }
     else
     {
-        m_node.earse();
+        m_node.erase();
     }
     return true;
 }
